@@ -11,10 +11,16 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@convex-dev/auth": "^0.0.88",
+    "@repo/backend": "workspace:*",
     "@repo/ui": "workspace:*",
+    "convex": "^1.25.4",
     "next": "^15.4.2",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^15.4.6",
