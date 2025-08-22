@@ -1,5 +1,6 @@
 'use client';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { Button } from '@repo/ui/button';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -39,22 +40,26 @@ export function SignInForm() {
         }}
       >
         <input
-          className='auth-input-field'
+          className='w-full px-4 py-3 rounded-container bg-white border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow shadow-sm hover:shadow my-3 rounded-sm'
           type='email'
           name='email'
           placeholder='Email'
           required
         />
         <input
-          className='auth-input-field'
+          className='w-full px-4 py-3 rounded-container bg-white border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow shadow-sm hover:shadow my-3 rounded-sm'
           type='password'
           name='password'
           placeholder='Password'
           required
         />
-        <button className='auth-button' type='submit' disabled={submitting}>
+        <Button
+          className='w-full px-4 py-3 rounded bg-teal-500 text-white font-semibold hover:bg-teal-600 transition-colors shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed capitalize  my-3'
+          type='submit'
+          disabled={submitting}
+        >
           {flow === 'signIn' ? 'Sign in' : 'Sign up'}
-        </button>
+        </Button>
         <div className='text-center text-sm text-secondary'>
           <span>
             {flow === 'signIn'
@@ -63,7 +68,7 @@ export function SignInForm() {
           </span>
           <button
             type='button'
-            className='text-primary hover:text-primary-hover hover:underline font-medium cursor-pointer'
+            className='text-primary hover:text-primary-hover hover:underline font-medium cursor-pointer capitalize text-slate-500'
             onClick={() => setFlow(flow === 'signIn' ? 'signUp' : 'signIn')}
           >
             {flow === 'signIn' ? 'Sign up instead' : 'Sign in instead'}
@@ -75,8 +80,8 @@ export function SignInForm() {
         <span className='mx-4 text-secondary'>or</span>
         <hr className='my-4 grow border-gray-200' />
       </div>
-      <button
-        className='auth-button'
+      <Button
+        className='w-full px-4 py-3 rounded bg-primary text-white font-semibold hover:bg-primary-hover transition-colors shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed capitalize text-slate-500'
         onClick={() =>
           void signIn('anonymous').then(async () => {
             await router.push('/dashboard');
@@ -84,7 +89,7 @@ export function SignInForm() {
         }
       >
         Sign in anonymously
-      </button>
+      </Button>
     </div>
   );
 }
