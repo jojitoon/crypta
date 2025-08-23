@@ -340,3 +340,338 @@ export const makeFirstUserAdmin = mutation({
     throw new Error('This function can only be used by the first user');
   },
 });
+
+// Community Management
+export const getAllCommunityIdeas = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const ideas = await ctx.db.query('communityIdeas').collect();
+
+    const ideasWithAuthors = await Promise.all(
+      ideas.map(async (idea) => {
+        const author = await ctx.db.get(idea.userId);
+        return {
+          ...idea,
+          authorName: author?.name || author?.email || 'Unknown',
+        };
+      })
+    );
+
+    return ideasWithAuthors;
+  },
+});
+
+export const getAllForumThreads = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const threads = await ctx.db.query('forumThreads').collect();
+
+    const threadsWithDetails = await Promise.all(
+      threads.map(async (thread) => {
+        const author = await ctx.db.get(thread.createdBy);
+        const posts = await ctx.db
+          .query('forumPosts')
+          .withIndex('by_thread', (q) => q.eq('threadId', thread._id))
+          .collect();
+
+        return {
+          ...thread,
+          authorName: author?.name || author?.email || 'Unknown',
+          postsCount: posts.length,
+        };
+      })
+    );
+
+    return threadsWithDetails;
+  },
+});
+
+export const getAllForumPosts = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const posts = await ctx.db.query('forumPosts').collect();
+
+    const postsWithDetails = await Promise.all(
+      posts.map(async (post) => {
+        const author = await ctx.db.get(post.createdBy);
+        const thread = await ctx.db.get(post.threadId);
+
+        return {
+          ...post,
+          authorName: author?.name || author?.email || 'Unknown',
+          threadTitle: thread?.title || 'Unknown Thread',
+        };
+      })
+    );
+
+    return postsWithDetails;
+  },
+});
+
+// Credentials Management
+export const getAllCredentials = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const credentials = await ctx.db.query('credentials').collect();
+
+    const credentialsWithDetails = await Promise.all(
+      credentials.map(async (credential) => {
+        const user = await ctx.db.get(credential.userId);
+        const course = await ctx.db.get(credential.courseId);
+
+        return {
+          ...credential,
+          userName: user?.name || 'Unknown',
+          userEmail: user?.email || 'Unknown',
+          courseTitle: course?.title || 'Unknown Course',
+        };
+      })
+    );
+
+    return credentialsWithDetails;
+  },
+});
+
+// Content Management
+export const getAllWebinars = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const webinars = await ctx.db.query('webinars').collect();
+
+    const webinarsWithDetails = await Promise.all(
+      webinars.map(async (webinar) => {
+        const host = await ctx.db.get(webinar.hostUserId);
+
+        return {
+          ...webinar,
+          hostName: host?.name || host?.email || 'Unknown',
+        };
+      })
+    );
+
+    return webinarsWithDetails;
+  },
+});
+
+export const getAllShorts = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const shorts = await ctx.db.query('shorts').collect();
+
+    const shortsWithDetails = await Promise.all(
+      shorts.map(async (short) => {
+        const creator = await ctx.db.get(short.createdBy);
+
+        return {
+          ...short,
+          creatorName: creator?.name || creator?.email || 'Unknown',
+        };
+      })
+    );
+
+    return shortsWithDetails;
+  },
+});
+
+export const getAllEvents = query({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const events = await ctx.db.query('events').collect();
+
+    return events;
+  },
+});
+
+// Mutations for Community Management
+export const updateCommunityIdeaStatus = mutation({
+  args: {
+    ideaId: v.id('communityIdeas'),
+    status: v.union(
+      v.literal('submitted'),
+      v.literal('under_review'),
+      v.literal('approved'),
+      v.literal('rejected')
+    ),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) {
+      throw new Error('Idea not found');
+    }
+
+    await ctx.db.patch(args.ideaId, { status: args.status });
+    return { success: true };
+  },
+});
+
+export const deleteCommunityIdea = mutation({
+  args: {
+    ideaId: v.id('communityIdeas'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) {
+      throw new Error('Idea not found');
+    }
+
+    await ctx.db.delete(args.ideaId);
+    return { success: true };
+  },
+});
+
+export const deleteForumThread = mutation({
+  args: {
+    threadId: v.id('forumThreads'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const thread = await ctx.db.get(args.threadId);
+    if (!thread) {
+      throw new Error('Thread not found');
+    }
+
+    // Delete all posts in the thread
+    const posts = await ctx.db
+      .query('forumPosts')
+      .withIndex('by_thread', (q) => q.eq('threadId', args.threadId))
+      .collect();
+
+    for (const post of posts) {
+      await ctx.db.delete(post._id);
+    }
+
+    await ctx.db.delete(args.threadId);
+    return { success: true };
+  },
+});
+
+export const deleteForumPost = mutation({
+  args: {
+    postId: v.id('forumPosts'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const post = await ctx.db.get(args.postId);
+    if (!post) {
+      throw new Error('Post not found');
+    }
+
+    await ctx.db.delete(args.postId);
+    return { success: true };
+  },
+});
+
+// Mutations for Credentials Management
+export const updateCredentialStatus = mutation({
+  args: {
+    credentialId: v.id('credentials'),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('issued'),
+      v.literal('failed')
+    ),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const credential = await ctx.db.get(args.credentialId);
+    if (!credential) {
+      throw new Error('Credential not found');
+    }
+
+    await ctx.db.patch(args.credentialId, {
+      status: args.status,
+      issuedAt: args.status === 'issued' ? Date.now() : credential.issuedAt,
+    });
+    return { success: true };
+  },
+});
+
+export const deleteCredential = mutation({
+  args: {
+    credentialId: v.id('credentials'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const credential = await ctx.db.get(args.credentialId);
+    if (!credential) {
+      throw new Error('Credential not found');
+    }
+
+    await ctx.db.delete(args.credentialId);
+    return { success: true };
+  },
+});
+
+// Mutations for Content Management
+export const deleteWebinar = mutation({
+  args: {
+    webinarId: v.id('webinars'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const webinar = await ctx.db.get(args.webinarId);
+    if (!webinar) {
+      throw new Error('Webinar not found');
+    }
+
+    await ctx.db.delete(args.webinarId);
+    return { success: true };
+  },
+});
+
+export const deleteShort = mutation({
+  args: {
+    shortId: v.id('shorts'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const short = await ctx.db.get(args.shortId);
+    if (!short) {
+      throw new Error('Short not found');
+    }
+
+    await ctx.db.delete(args.shortId);
+    return { success: true };
+  },
+});
+
+export const deleteEvent = mutation({
+  args: {
+    eventId: v.id('events'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    await ctx.db.delete(args.eventId);
+    return { success: true };
+  },
+});

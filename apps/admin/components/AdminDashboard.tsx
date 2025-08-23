@@ -7,9 +7,18 @@ import { toast } from 'sonner';
 import { AdminStats } from './AdminStats';
 import { CourseManagement } from './CourseManagement';
 import { UserManagement } from './UserManagement';
+import { CommunityManagement } from './CommunityManagement';
+import { CredentialsManagement } from './CredentialsManagement';
+import { ContentManagement } from './ContentManagement';
 import { useAuthActions } from '@convex-dev/auth/react';
 
-type TabType = 'overview' | 'users' | 'courses';
+type TabType =
+  | 'overview'
+  | 'users'
+  | 'courses'
+  | 'community'
+  | 'credentials'
+  | 'content';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -30,6 +39,9 @@ export function AdminDashboard() {
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'courses', label: 'Courses', icon: '📚' },
+    { id: 'community', label: 'Community', icon: '🌐' },
+    { id: 'credentials', label: 'Credentials', icon: '🏆' },
+    { id: 'content', label: 'Content', icon: '📝' },
   ] as const;
 
   return (
@@ -85,6 +97,9 @@ export function AdminDashboard() {
         {activeTab === 'overview' && <AdminStats stats={stats} />}
         {activeTab === 'users' && <UserManagement />}
         {activeTab === 'courses' && <CourseManagement />}
+        {activeTab === 'community' && <CommunityManagement />}
+        {activeTab === 'credentials' && <CredentialsManagement />}
+        {activeTab === 'content' && <ContentManagement />}
       </main>
     </div>
   );
