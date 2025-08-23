@@ -4,10 +4,9 @@ import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 
 export default function GovernancePage() {
-  const apiAny = api as any;
-  const proposals = useQuery(apiAny.governance.listProposals, {});
-  const createProposal = useMutation(apiAny.governance.createProposal);
-  const castVote = useMutation(apiAny.governance.castVote);
+  const proposals = useQuery(api.governance.listProposals, {});
+  const createProposal = useMutation(api.governance.createProposal);
+  const castVote = useMutation(api.governance.castVote);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -44,26 +43,22 @@ export default function GovernancePage() {
       <ul className='mt-6 space-y-2'>
         {(proposals || []).map((p) => (
           <li
-            key={(p as any)._id}
+            key={p._id}
             className='border rounded p-3 text-sm flex justify-between'
           >
             <div>
-              <div className='font-medium'>{(p as any).title}</div>
-              <div className='text-gray-600'>{(p as any).description}</div>
+              <div className='font-medium'>{p.title}</div>
+              <div className='text-gray-600'>{p.description}</div>
             </div>
             <div className='flex gap-2'>
               <button
-                onClick={() =>
-                  castVote({ proposalId: (p as any)._id, support: true })
-                }
+                onClick={() => castVote({ proposalId: p._id, support: true })}
                 className='bg-green-600 text-white px-3 py-1 rounded'
               >
                 Yes
               </button>
               <button
-                onClick={() =>
-                  castVote({ proposalId: (p as any)._id, support: false })
-                }
+                onClick={() => castVote({ proposalId: p._id, support: false })}
                 className='bg-red-600 text-white px-3 py-1 rounded'
               >
                 No

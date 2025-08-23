@@ -3,12 +3,13 @@ import { useQuery } from 'convex/react';
 import { useConvexAuth } from 'convex/react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@repo/backend/convex';
+import { Id } from '@repo/backend/dataModel';
 
 export function CourseView() {
-  const { courseId } = useParams<{ courseId: string }>();
+  const { courseId } = useParams<{ courseId: Id<'courses'> }>();
   const router = useRouter();
   const { isAuthenticated } = useConvexAuth();
-  const course = useQuery(api.courses.getCourse, { courseId: courseId as any });
+  const course = useQuery(api.courses.getCourse, { courseId: courseId });
   const loggedInUser = useQuery(api.auth.loggedInUser);
 
   if (!courseId) {

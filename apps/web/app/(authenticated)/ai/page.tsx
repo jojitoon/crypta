@@ -1,5 +1,6 @@
 'use client';
 import { api } from '@repo/backend/convex';
+import { Id } from '@repo/backend/dataModel';
 import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 
@@ -10,13 +11,15 @@ export default function AIPage() {
   const startSession = useMutation(api.ai.startSession);
   const sendMessage = useMutation(api.ai.sendMessage);
   const [message, setMessage] = useState('');
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<Id<'aiSessions'> | null>(null);
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     await upsertProfile({
-      preferredLevel: (form.get('level') as any) || undefined,
+      preferredLevel:
+        (form.get('level') as 'beginner' | 'intermediate' | 'advanced') ||
+        undefined,
       topics: form.get('topics')
         ? String(form.get('topics'))
             .split(',')
@@ -26,7 +29,7 @@ export default function AIPage() {
     });
   };
 
-  const ensureSession = async () => {
+  const ensureSession = async (): Promise<Id<'aiSessions'>> => {
     if (sessionId) return sessionId;
     const { sessionId: id } = await startSession({});
     setSessionId(id);
@@ -36,7 +39,7 @@ export default function AIPage() {
   const handleSend = async () => {
     if (!message) return;
     const id = await ensureSession();
-    await sendMessage({ sessionId: id as any, content: message });
+    await sendMessage({ sessionId: id, content: message });
     setMessage('');
   };
 
@@ -86,8 +89,8 @@ export default function AIPage() {
         <h2 className='text-xl font-semibold mb-2'>Recommendations</h2>
         <ul className='space-y-2'>
           {(recs || []).map((r) => (
-            <li key={(r as any)._id} className='border rounded p-3 text-sm'>
-              <div className='text-gray-800'>{(r as any).reason}</div>
+            <li key={r._id} className='border rounded p-3 text-sm'>
+              <div className='text-gray-800'>{r.reason}</div>
             </li>
           ))}
         </ul>

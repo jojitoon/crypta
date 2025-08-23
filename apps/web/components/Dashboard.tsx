@@ -17,7 +17,7 @@ export function Dashboard() {
     try {
       await seedCourses({});
       toast.success('Sample courses created! Refresh to see them.');
-    } catch (error) {
+    } catch {
       toast.error('Failed to create sample courses');
     }
   };
@@ -36,8 +36,8 @@ export function Dashboard() {
         course.progressPercentage > 0 && course.progressPercentage < 100
     ) || [];
 
-  const completedCourses =
-    courses?.filter((course) => course.progressPercentage === 100) || [];
+  // const completedCourses =
+  //   courses?.filter((course) => course.progressPercentage === 100) || [];
 
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>

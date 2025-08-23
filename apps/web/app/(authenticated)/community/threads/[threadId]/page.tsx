@@ -5,32 +5,32 @@ import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { Doc, Id } from '@repo/backend/dataModel';
 
 export default function ThreadPage() {
-  const params = useParams() as { threadId: string };
-  const apiAny = api as any;
-  const posts = useQuery(apiAny.community.listThreadPosts, {
-    threadId: params.threadId as any,
+  const params = useParams() as { threadId: Id<'forumThreads'> };
+  const posts = useQuery(api.community.listThreadPosts, {
+    threadId: params.threadId,
   });
-  const addPost = useMutation(apiAny.community.addPost);
-  const votePost = useMutation(apiAny.community.votePost);
-  const loggedInUser = useQuery(apiAny.auth.loggedInUser);
+  const addPost = useMutation(api.community.addPost);
+  const votePost = useMutation(api.community.votePost);
+  const loggedInUser = useQuery(api.auth.loggedInUser);
   const [content, setContent] = useState('');
 
   const handlePost = async () => {
     if (!content) return;
-    await addPost({ threadId: params.threadId as any, content });
+    await addPost({ threadId: params.threadId, content });
     setContent('');
   };
 
-  const handleVote = async (postId: string, vote: 'up' | 'down') => {
-    await votePost({ postId: postId as any, vote });
+  const handleVote = async (postId: Id<'forumPosts'>, vote: 'up' | 'down') => {
+    await votePost({ postId: postId, vote });
   };
 
-  const getUserVote = (post: any) => {
+  const getUserVote = (post: Doc<'forumPosts'>) => {
     if (!loggedInUser?._id) return null;
     const votes = post.votes || [];
-    const userVote = votes.find((v: any) => v.userId === loggedInUser._id);
+    const userVote = votes.find((v) => v.userId === loggedInUser._id);
     return userVote?.vote || null;
   };
 
@@ -64,24 +64,24 @@ export default function ThreadPage() {
 
       <div className='space-y-4'>
         {(posts || []).map((p) => (
-          <div key={(p as any)._id} className='border rounded p-4'>
+          <div key={p._id} className='border rounded p-4'>
             <div className='flex justify-between items-start mb-2'>
               <div className='flex items-center gap-2'>
                 <span className='font-medium text-blue-600'>
-                  {(p as any).authorName}
+                  {p.authorName}
                 </span>
                 <span className='text-xs text-gray-500'>
-                  {new Date((p as any).createdAt).toLocaleDateString()}
+                  {new Date(p.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
-            <div className='text-gray-800 mb-3'>{(p as any).content}</div>
+            <div className='text-gray-800 mb-3'>{p.content}</div>
 
             {/* Voting */}
             <div className='flex items-center gap-3'>
               <div className='flex items-center gap-1'>
                 <button
-                  onClick={() => handleVote((p as any)._id, 'up')}
+                  onClick={() => handleVote(p._id, 'up')}
                   className={`p-1 rounded transition-colors ${
                     getUserVote(p) === 'up'
                       ? 'text-green-600 bg-green-100'
@@ -91,12 +91,12 @@ export default function ThreadPage() {
                   <FaArrowUp size={16} />
                 </button>
                 <span className='text-sm font-medium text-gray-700'>
-                  {(p as any).upvotes || 0}
+                  {p.upvotes || 0}
                 </span>
               </div>
               <div className='flex items-center gap-1'>
                 <button
-                  onClick={() => handleVote((p as any)._id, 'down')}
+                  onClick={() => handleVote(p._id, 'down')}
                   className={`p-1 rounded transition-colors ${
                     getUserVote(p) === 'down'
                       ? 'text-red-600 bg-red-100'
@@ -106,11 +106,11 @@ export default function ThreadPage() {
                   <FaArrowDown size={16} />
                 </button>
                 <span className='text-sm font-medium text-gray-700'>
-                  {(p as any).downvotes || 0}
+                  {p.downvotes || 0}
                 </span>
               </div>
               <span className='text-xs text-gray-500'>
-                Score: {((p as any).upvotes || 0) - ((p as any).downvotes || 0)}
+                Score: {(p.upvotes || 0) - (p.downvotes || 0)}
               </span>
             </div>
           </div>

@@ -55,7 +55,7 @@ export const voteIdea = mutation({
     if (existingVoteIndex >= 0) {
       const existingVote = votes[existingVoteIndex];
 
-      if (existingVote.vote === args.vote) {
+      if (existingVote?.vote === args.vote) {
         // Remove vote if same type
         votes.splice(existingVoteIndex, 1);
         if (args.vote === 'up') {
@@ -334,7 +334,7 @@ export const votePost = mutation({
     if (existingVoteIndex >= 0) {
       const existingVote = votes[existingVoteIndex];
 
-      if (existingVote.vote === args.vote) {
+      if (existingVote?.vote === args.vote) {
         // Remove vote if same type
         votes.splice(existingVoteIndex, 1);
         if (args.vote === 'up') {

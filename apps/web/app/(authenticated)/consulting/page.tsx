@@ -1,13 +1,13 @@
 'use client';
 import { api } from '@repo/backend/convex';
+import { Id } from '@repo/backend/dataModel';
 import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 
 export default function ConsultingPage() {
-  const apiAny = api as any;
-  const myBookings = useQuery(apiAny.consulting.myBookings);
-  const setAvailability = useMutation(apiAny.consulting.setAvailability);
-  const requestBooking = useMutation(apiAny.consulting.requestBooking);
+  const myBookings = useQuery(api.consulting.myBookings);
+  // const setAvailability = useMutation(api.consulting.setAvailability);
+  const requestBooking = useMutation(api.consulting.requestBooking);
   const [coachId, setCoachId] = useState('');
   const [startAt, setStartAt] = useState('');
   const [endAt, setEndAt] = useState('');
@@ -15,7 +15,7 @@ export default function ConsultingPage() {
   const handleBook = async () => {
     if (!coachId || !startAt || !endAt) return;
     await requestBooking({
-      coachUserId: coachId as any,
+      coachUserId: coachId as Id<'users'>,
       startAt: Number(startAt),
       endAt: Number(endAt),
     });
@@ -60,8 +60,8 @@ export default function ConsultingPage() {
         <h2 className='text-xl font-semibold mb-3'>My Bookings</h2>
         <ul className='space-y-2'>
           {(myBookings || []).map((b) => (
-            <li key={(b as any)._id} className='border rounded p-3 text-sm'>
-              {(b as any).startAt} → {(b as any).endAt} — {(b as any).status}
+            <li key={b._id} className='border rounded p-3 text-sm'>
+              {b.startAt} → {b.endAt} — {b.status}
             </li>
           ))}
         </ul>

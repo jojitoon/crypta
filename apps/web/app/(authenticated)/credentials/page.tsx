@@ -1,5 +1,6 @@
 'use client';
 import { api } from '@repo/backend/convex';
+import { Id } from '@repo/backend/dataModel';
 import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 
@@ -7,13 +8,13 @@ export default function CredentialsPage() {
   const list = useQuery(api.credentials.listCredentials);
   const completedCourses = useQuery(api.courses.getCompletedCourses);
   const request = useMutation(api.credentials.requestCredential);
-  const [courseId, setCourseId] = useState('');
+  const [courseId, setCourseId] = useState<Id<'courses'> | null>(null);
   const [type, setType] = useState<'nft' | 'onchain' | 'offchain'>('nft');
 
   const handleRequest = async () => {
     if (!courseId) return;
-    await request({ courseId: courseId as any, credentialType: type });
-    setCourseId('');
+    await request({ courseId: courseId, credentialType: type });
+    setCourseId(null);
   };
 
   return (
@@ -28,12 +29,12 @@ export default function CredentialsPage() {
         ) : (
           <>
             <select
-              value={courseId}
-              onChange={(e) => setCourseId(e.target.value)}
+              value={courseId || ''}
+              onChange={(e) => setCourseId(e.target.value as Id<'courses'>)}
               className='border rounded px-3 py-2'
             >
               <option value=''>Select a completed course...</option>
-              {(completedCourses || []).map((course: any) => (
+              {(completedCourses || []).map((course) => (
                 <option key={course.courseId} value={course.courseId}>
                   {course.courseTitle}
                 </option>
@@ -41,7 +42,9 @@ export default function CredentialsPage() {
             </select>
             <select
               value={type}
-              onChange={(e) => setType(e.target.value as any)}
+              onChange={(e) =>
+                setType(e.target.value as 'nft' | 'onchain' | 'offchain')
+              }
               className='border rounded px-3 py-2'
             >
               <option value='nft'>NFT</option>

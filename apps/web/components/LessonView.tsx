@@ -6,11 +6,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { api } from '@repo/backend/convex';
 import { useParams, useRouter } from 'next/navigation';
+import { Id } from '@repo/backend/dataModel';
 
 export function LessonView() {
-  const { lessonId } = useParams<{ lessonId: string }>();
+  const { lessonId } = useParams<{ lessonId: Id<'lessons'> }>();
   const router = useRouter();
-  const lesson = useQuery(api.courses.getLesson, { lessonId: lessonId as any });
+  const lesson = useQuery(api.courses.getLesson, {
+    lessonId,
+  });
   const completeLesson = useMutation(api.courses.completeLesson);
 
   const [startTime] = useState(Date.now());
@@ -53,14 +56,14 @@ export function LessonView() {
 
     try {
       await completeLesson({
-        lessonId: lessonId as any,
+        lessonId: lessonId,
         score,
         timeSpent: Math.max(1, timeSpent), // At least 1 minute
       });
 
       toast.success('Lesson completed! 🎉');
       router.push(`/courses/${lesson.course._id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to complete lesson');
     }
   };

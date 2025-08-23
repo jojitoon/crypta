@@ -4,9 +4,8 @@ import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 
 export default function ShortsPage() {
-  const apiAny = api as any;
-  const shorts = useQuery(apiAny.multimedia.listShorts);
-  const createShort = useMutation(apiAny.multimedia.createShort);
+  const shorts = useQuery(api.multimedia.listShorts);
+  const createShort = useMutation(api.multimedia.createShort);
   const [title, setTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
 
@@ -42,10 +41,10 @@ export default function ShortsPage() {
       </button>
       <ul className='mt-6 grid md:grid-cols-2 gap-3'>
         {(shorts || []).map((s) => (
-          <li key={(s as any)._id} className='border rounded overflow-hidden'>
-            <div className='p-3 text-sm font-medium'>{(s as any).title}</div>
+          <li key={s._id} className='border rounded overflow-hidden'>
+            <div className='p-3 text-sm font-medium'>{s.title}</div>
             <video
-              src={(s as any).videoUrl}
+              src={s.videoUrl}
               controls
               className='w-full h-48 object-cover'
             />

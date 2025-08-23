@@ -6,9 +6,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { api } from '@repo/backend/convex';
 import { useParams, useRouter } from 'next/navigation';
+import { Id } from '@repo/backend/dataModel';
 
 export function LessonCreator() {
-  const { courseId } = useParams<{ courseId: string }>();
+  const { courseId } = useParams<{ courseId: Id<'courses'> }>();
   const router = useRouter();
   const createLesson = useMutation(api.courses.createLesson);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +35,7 @@ export function LessonCreator() {
 
     try {
       await createLesson({
-        courseId: courseId as any,
+        courseId: courseId,
         ...formData,
       });
 
@@ -48,7 +49,10 @@ export function LessonCreator() {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (
+    field: string,
+    value: string | number | boolean
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

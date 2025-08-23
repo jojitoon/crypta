@@ -5,9 +5,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function CommunityPage() {
-  const apiAny = api as any;
-  const threads = useQuery(apiAny.community.listThreads, {});
-  const createThread = useMutation(apiAny.community.createThread);
+  const threads = useQuery(api.community.listThreads, {});
+  const createThread = useMutation(api.community.createThread);
   const [threadTitle, setThreadTitle] = useState('');
 
   const handleThread = async () => {
@@ -55,29 +54,25 @@ export default function CommunityPage() {
         <ul className='space-y-3'>
           {(threads || []).map((t) => (
             <li
-              key={(t as any)._id}
+              key={t._id}
               className='border rounded p-4 hover:bg-gray-50 transition-colors'
             >
-              <a href={`/community/threads/${(t as any)._id}`}>
+              <a href={`/community/threads/${t._id}`}>
                 <div className='font-medium text-lg mb-2 hover:text-blue-600 transition-colors'>
-                  {(t as any).title}
+                  {t.title}
                 </div>
-                {(t as any).lastPost && (
+                {t.lastPost && (
                   <div className='text-sm text-gray-600'>
-                    <span className='font-medium'>
-                      {(t as any).lastPost.authorName}
+                    <span className='font-medium'>{t.lastPost.authorName}</span>
+                    <span className='mx-2'>•</span>
+                    <span>
+                      {t.lastPost.content.length > 100
+                        ? t.lastPost.content.substring(0, 100) + '...'
+                        : t.lastPost.content}
                     </span>
                     <span className='mx-2'>•</span>
                     <span>
-                      {(t as any).lastPost.content.length > 100
-                        ? (t as any).lastPost.content.substring(0, 100) + '...'
-                        : (t as any).lastPost.content}
-                    </span>
-                    <span className='mx-2'>•</span>
-                    <span>
-                      {new Date(
-                        (t as any).lastPost.createdAt
-                      ).toLocaleDateString()}
+                      {new Date(t.lastPost.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 )}

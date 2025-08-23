@@ -3,16 +3,15 @@ import { api } from '@repo/backend/convex';
 import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useConvexAuth } from 'convex/react';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { Doc, Id } from '@repo/backend/dataModel';
 
 export default function CourseIdeasPage() {
-  const apiAny = api as any;
-  const { isAuthenticated } = useConvexAuth();
-  const loggedInUser = useQuery(apiAny.auth.loggedInUser);
-  const ideas = useQuery(apiAny.community.listIdeas, {});
-  const submitIdea = useMutation(apiAny.community.submitIdea);
-  const voteIdea = useMutation(apiAny.community.voteIdea);
+  // const { isAuthenticated } = useConvexAuth();
+  const loggedInUser = useQuery(api.auth.loggedInUser);
+  const ideas = useQuery(api.community.listIdeas, {});
+  const submitIdea = useMutation(api.community.submitIdea);
+  const voteIdea = useMutation(api.community.voteIdea);
 
   const [ideaTitle, setIdeaTitle] = useState('');
   const [ideaDesc, setIdeaDesc] = useState('');
@@ -24,14 +23,17 @@ export default function CourseIdeasPage() {
     setIdeaDesc('');
   };
 
-  const handleVote = async (ideaId: string, vote: 'up' | 'down') => {
-    await voteIdea({ ideaId: ideaId as any, vote });
+  const handleVote = async (
+    ideaId: Id<'communityIdeas'>,
+    vote: 'up' | 'down'
+  ) => {
+    await voteIdea({ ideaId: ideaId, vote });
   };
 
-  const getUserVote = (idea: any) => {
+  const getUserVote = (idea: Doc<'communityIdeas'>) => {
     if (!loggedInUser?._id) return null;
     const votes = idea.votes || [];
-    const userVote = votes.find((v: any) => v.userId === loggedInUser._id);
+    const userVote = votes.find((v) => v.userId === loggedInUser._id);
     return userVote?.vote || null;
   };
 
@@ -79,16 +81,16 @@ export default function CourseIdeasPage() {
       <section>
         <h2 className='text-xl font-semibold mb-3'>Community Ideas</h2>
         <div className='grid gap-4'>
-          {(ideas || []).map((i: any) => {
+          {(ideas || []).map((i) => {
             const userVote = getUserVote(i);
             return (
-              <div key={(i as any)._id} className='border rounded p-4'>
+              <div key={i._id} className='border rounded p-4'>
                 <div className='flex justify-between items-start mb-2'>
-                  <h3 className='font-medium text-lg'>{(i as any).title}</h3>
+                  <h3 className='font-medium text-lg'>{i.title}</h3>
                   <div className='flex items-center gap-3'>
                     <div className='flex items-center gap-1'>
                       <button
-                        onClick={() => handleVote((i as any)._id, 'up')}
+                        onClick={() => handleVote(i._id, 'up')}
                         className={`p-1 rounded transition-colors ${
                           userVote === 'up'
                             ? 'text-green-600 bg-green-100'
@@ -98,12 +100,12 @@ export default function CourseIdeasPage() {
                         <FaArrowUp size={16} />
                       </button>
                       <span className='text-sm font-medium text-gray-700'>
-                        {(i as any).upvotes}
+                        {i.upvotes}
                       </span>
                     </div>
                     <div className='flex items-center gap-1'>
                       <button
-                        onClick={() => handleVote((i as any)._id, 'down')}
+                        onClick={() => handleVote(i._id, 'down')}
                         className={`p-1 rounded transition-colors ${
                           userVote === 'down'
                             ? 'text-red-600 bg-red-100'
@@ -113,20 +115,19 @@ export default function CourseIdeasPage() {
                         <FaArrowDown size={16} />
                       </button>
                       <span className='text-sm font-medium text-gray-700'>
-                        {(i as any).downvotes || 0}
+                        {i.downvotes || 0}
                       </span>
                     </div>
                   </div>
                 </div>
-                <p className='text-gray-700 mb-3'>{(i as any).description}</p>
+                <p className='text-gray-700 mb-3'>{i.description}</p>
                 <div className='flex items-center gap-4 text-xs text-gray-500'>
-                  <span>Status: {(i as any).status}</span>
+                  <span>Status: {i.status}</span>
                   <span>
-                    Submitted:{' '}
-                    {new Date((i as any).createdAt).toLocaleDateString()}
+                    Submitted: {new Date(i.createdAt).toLocaleDateString()}
                   </span>
                   <span className='text-green-600 font-medium'>
-                    Score: {(i as any).upvotes - ((i as any).downvotes || 0)}
+                    Score: {i.upvotes - (i.downvotes || 0)}
                   </span>
                 </div>
               </div>

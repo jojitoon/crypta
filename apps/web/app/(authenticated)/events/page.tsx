@@ -4,10 +4,9 @@ import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 
 export default function EventsPage() {
-  const apiAny = api as any;
-  const events = useQuery(apiAny.events.listEvents);
-  const createEvent = useMutation(apiAny.events.createEvent);
-  const register = useMutation(apiAny.events.registerForEvent);
+  const events = useQuery(api.events.listEvents);
+  const createEvent = useMutation(api.events.createEvent);
+  const register = useMutation(api.events.registerForEvent);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -45,7 +44,7 @@ export default function EventsPage() {
         />
         <select
           value={type}
-          onChange={(e) => setType(e.target.value as any)}
+          onChange={(e) => setType(e.target.value as 'virtual' | 'physical')}
           className='border rounded px-3 py-2'
         >
           <option value='virtual'>Virtual</option>
@@ -61,15 +60,15 @@ export default function EventsPage() {
       <ul className='mt-6 space-y-2'>
         {(events || []).map((ev) => (
           <li
-            key={(ev as any)._id}
+            key={ev._id}
             className='border rounded p-3 text-sm flex justify-between'
           >
             <div>
-              <div className='font-medium'>{(ev as any).title}</div>
-              <div className='text-gray-600'>{(ev as any).description}</div>
+              <div className='font-medium'>{ev.title}</div>
+              <div className='text-gray-600'>{ev.description}</div>
             </div>
             <button
-              onClick={() => register({ eventId: (ev as any)._id })}
+              onClick={() => register({ eventId: ev._id })}
               className='bg-gray-900 text-white px-3 py-1 rounded'
             >
               Register

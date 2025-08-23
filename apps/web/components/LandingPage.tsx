@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { api } from '@repo/backend/convex';
 import { Id } from '@repo/backend/dataModel';
+import Image from 'next/image';
 
 export function LandingPage() {
   const previewCourses = useQuery(api.courses.getPreviewCourses);
@@ -164,18 +165,19 @@ export function LandingPage() {
             </div>
           ) : (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-              {previewCourses.map((course: any) => (
+              {previewCourses.map((course) => (
                 <div
-                  key={course._id}
+                  key={course?._id}
                   className='bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer'
-                  onClick={() => setSelectedCourse(course._id)}
+                  onClick={() => setSelectedCourse(course?._id || null)}
                 >
-                  {course.imageUrl && (
+                  {course?.imageUrl && (
                     <div className='h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center'>
-                      <img
+                      <Image
                         src={course.imageUrl}
                         alt={course.title}
                         className='w-full h-full object-cover'
+                        unoptimized
                       />
                     </div>
                   )}
@@ -184,14 +186,14 @@ export function LandingPage() {
                     <div className='flex justify-between items-start mb-3'>
                       <span
                         className={`text-xs font-medium px-3 py-1 rounded-full ${
-                          course.level === 'beginner'
+                          course?.level === 'beginner'
                             ? 'bg-green-100 text-green-800'
-                            : course.level === 'intermediate'
+                            : course?.level === 'intermediate'
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {course.level}
+                        {course?.level}
                       </span>
                       <span className='text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full'>
                         Free Preview
@@ -199,11 +201,11 @@ export function LandingPage() {
                     </div>
 
                     <h3 className='text-xl font-semibold text-gray-900 mb-3'>
-                      {course.title}
+                      {course?.title}
                     </h3>
 
                     <p className='text-gray-600 text-sm mb-4 line-clamp-3'>
-                      {course.description}
+                      {course?.description}
                     </p>
 
                     <div className='flex items-center justify-between text-sm text-gray-500 mb-4'>
@@ -213,7 +215,7 @@ export function LandingPage() {
                       </span>
                       <span className='flex items-center'>
                         <span className='mr-1'>⏱️</span>
-                        {course.estimatedDuration}min
+                        {course?.estimatedDuration}min
                       </span>
                     </div>
 

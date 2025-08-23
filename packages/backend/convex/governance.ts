@@ -26,7 +26,9 @@ export const listProposals = query({
     if (args.status) {
       return await ctx.db
         .query('governanceProposals')
-        .withIndex('by_status', (q) => q.eq('status', args.status))
+        .withIndex('by_status', (q) =>
+          q.eq('status', args.status as 'active' | 'draft' | 'closed')
+        )
         .order('desc')
         .collect();
     }

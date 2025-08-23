@@ -4,9 +4,8 @@ import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 
 export default function WebinarsPage() {
-  const apiAny = api as any;
-  const webinars = useQuery(apiAny.multimedia.listWebinars);
-  const createWebinar = useMutation(apiAny.multimedia.createWebinar);
+  const webinars = useQuery(api.multimedia.listWebinars);
+  const createWebinar = useMutation(api.multimedia.createWebinar);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
@@ -54,8 +53,8 @@ export default function WebinarsPage() {
       </button>
       <ul className='mt-6 space-y-2'>
         {(webinars || []).map((w) => (
-          <li key={(w as any)._id} className='border rounded p-3 text-sm'>
-            {(w as any).title} — {(w as any).scheduledAt}
+          <li key={w._id} className='border rounded p-3 text-sm'>
+            {w.title} — {w.scheduledAt}
           </li>
         ))}
       </ul>
