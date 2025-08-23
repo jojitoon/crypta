@@ -205,6 +205,57 @@ export const getMyCourses = query({
   },
 });
 
+export const getCompletedCourses = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return [];
+    }
+
+    // Get all user progress records
+    const userProgress = await ctx.db
+      .query('userProgress')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+
+    // Group by course and check completion
+    const courseProgress = new Map();
+    for (const progress of userProgress) {
+      if (!courseProgress.has(progress.courseId)) {
+        courseProgress.set(progress.courseId, {
+          courseId: progress.courseId,
+          completedLessons: 0,
+          totalLessons: 0,
+          isCompleted: false,
+        });
+      }
+      const courseData = courseProgress.get(progress.courseId);
+      if (progress.completed) {
+        courseData.completedLessons++;
+      }
+    }
+
+    // Get course details and check completion
+    const completedCourses = [];
+    for (const [courseId, progress] of courseProgress) {
+      const course = await ctx.db.get(courseId);
+      if (course && 'totalLessons' in course) {
+        progress.totalLessons = course.totalLessons;
+        progress.isCompleted =
+          progress.completedLessons === course.totalLessons;
+        progress.courseTitle = course.title;
+
+        if (progress.isCompleted) {
+          completedCourses.push(progress);
+        }
+      }
+    }
+
+    return completedCourses;
+  },
+});
+
 export const completeLesson = mutation({
   args: {
     lessonId: v.id('lessons'),

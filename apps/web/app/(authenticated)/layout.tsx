@@ -4,9 +4,11 @@ import { useConvexAuth, useQuery } from 'convex/react';
 import Link from 'next/link';
 import { SignOutButton } from '../../components/SignOutButton';
 import { redirect } from 'next/navigation';
+import { useState } from 'react';
 
 function Header() {
   const userStats = useQuery(api.achievements.getUserStats);
+  const [open, setOpen] = useState(false);
   return (
     <header className='sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -20,25 +22,181 @@ function Header() {
               <span>CryptoLearn</span>
             </Link>
 
-            <nav className='hidden md:flex space-x-6'>
-              <Link
-                href='/dashboard'
-                className='px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors'
+            <nav className='hidden md:block relative'>
+              <button
+                onClick={() => setOpen((v) => !v)}
+                onBlur={() => setTimeout(() => setOpen(false), 150)}
+                aria-haspopup='menu'
+                aria-expanded={open}
+                className='inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm'
               >
-                Dashboard
-              </Link>
-              <Link
-                href='/courses'
-                className='px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors'
-              >
-                Courses
-              </Link>
-              <Link
-                href='/create-course'
-                className='px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors'
-              >
-                Create Course
-              </Link>
+                <span>Browse</span>
+                <span
+                  className={`transition-transform ${open ? 'rotate-180' : ''}`}
+                >
+                  ▾
+                </span>
+              </button>
+              {open && (
+                <div className='absolute mt-2 w-72 rounded-lg border border-gray-200 bg-white shadow-xl overflow-hidden'>
+                  <div className='grid grid-cols-1 divide-y divide-gray-100'>
+                    <Link
+                      href='/dashboard'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🏠</span>
+                      <div>
+                        <div className='font-medium'>Dashboard</div>
+                        <div className='text-xs text-gray-500'>
+                          Your overview and progress
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/courses'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>📚</span>
+                      <div>
+                        <div className='font-medium'>Courses</div>
+                        <div className='text-xs text-gray-500'>
+                          Browse all courses
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/create-course'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>➕</span>
+                      <div>
+                        <div className='font-medium'>Create Course</div>
+                        <div className='text-xs text-gray-500'>
+                          Publish your content
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/community'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🌐</span>
+                      <div>
+                        <div className='font-medium'>Community</div>
+                        <div className='text-xs text-gray-500'>
+                          Forum discussions
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/community/ideas'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>💡</span>
+                      <div>
+                        <div className='font-medium'>Course Ideas</div>
+                        <div className='text-xs text-gray-500'>
+                          Suggest new courses
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/ai'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🤖</span>
+                      <div>
+                        <div className='font-medium'>AI Tutor</div>
+                        <div className='text-xs text-gray-500'>
+                          Personalized learning
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/credentials'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🎓</span>
+                      <div>
+                        <div className='font-medium'>Credentials</div>
+                        <div className='text-xs text-gray-500'>
+                          On-chain certificates
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/wallet'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🦊</span>
+                      <div>
+                        <div className='font-medium'>Wallet</div>
+                        <div className='text-xs text-gray-500'>
+                          Connect and staking
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/consulting'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🗓️</span>
+                      <div>
+                        <div className='font-medium'>Consulting</div>
+                        <div className='text-xs text-gray-500'>
+                          1:1 coaching
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/multimedia/webinars'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🎥</span>
+                      <div>
+                        <div className='font-medium'>Webinars</div>
+                        <div className='text-xs text-gray-500'>
+                          Live sessions
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/multimedia/shorts'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>📱</span>
+                      <div>
+                        <div className='font-medium'>Shorts</div>
+                        <div className='text-xs text-gray-500'>Quick tips</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/events'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🎟️</span>
+                      <div>
+                        <div className='font-medium'>Events</div>
+                        <div className='text-xs text-gray-500'>
+                          Virtual & physical
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href='/governance'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
+                    >
+                      <span>🗳️</span>
+                      <div>
+                        <div className='font-medium'>Governance</div>
+                        <div className='text-xs text-gray-500'>
+                          Vote and propose
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
             </nav>
           </div>
 

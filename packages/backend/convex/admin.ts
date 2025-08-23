@@ -238,7 +238,7 @@ export const deleteCourse = mutation({
 
     const userProgress = await ctx.db
       .query('userProgress')
-      .withIndex('by_user_course', (q) => q.eq('courseId', args.courseId))
+      .withIndex('by_user_course', (q) => q.eq('userId', course.createdBy))
       .collect();
 
     // Delete user progress
