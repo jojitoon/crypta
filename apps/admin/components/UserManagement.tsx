@@ -5,12 +5,14 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@repo/backend/convex';
 import { toast } from 'sonner';
 import { Id } from '@repo/backend/dataModel';
+import { UserProfileEdit } from './UserProfileEdit';
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admin' | 'user'>(
     'all'
   );
+  const [editingUserId, setEditingUserId] = useState<Id<'users'> | null>(null);
 
   const users = useQuery(api.admin.getAllUsers);
   const updateUserAdminStatus = useMutation(api.admin.updateUserAdminStatus);
@@ -45,6 +47,14 @@ export function UserManagement() {
     } catch (error) {
       toast.error('Failed to delete user');
     }
+  };
+
+  const handleEditUser = (userId: Id<'users'>) => {
+    setEditingUserId(userId);
+  };
+
+  const handleCloseEdit = () => {
+    setEditingUserId(null);
   };
 
   if (!users) {
@@ -183,6 +193,12 @@ export function UserManagement() {
                   <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                     <div className='flex space-x-2'>
                       <button
+                        onClick={() => handleEditUser(user._id)}
+                        className='px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200'
+                      >
+                        Edit
+                      </button>
+                      <button
                         onClick={() =>
                           handleToggleAdmin(user._id, user.isAdmin || false)
                         }
@@ -221,6 +237,11 @@ export function UserManagement() {
           </div>
         )}
       </div>
+
+      {/* Profile Edit Modal */}
+      {editingUserId && (
+        <UserProfileEdit userId={editingUserId} onClose={handleCloseEdit} />
+      )}
     </div>
   );
 }

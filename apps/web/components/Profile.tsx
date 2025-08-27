@@ -1,6 +1,7 @@
 'use client';
 import { useQuery } from 'convex/react';
 import { api } from '@repo/backend/convex';
+import Link from 'next/link';
 
 export function Profile() {
   const loggedInUser = useQuery(api.auth.loggedInUser);
@@ -23,11 +24,19 @@ export function Profile() {
 
   return (
     <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-      <div className='mb-8'>
-        <h1 className='text-3xl font-bold text-gray-900 mb-2'>Profile</h1>
-        <p className='text-gray-600'>
-          Track your learning progress and achievements
-        </p>
+      <div className='mb-8 flex justify-between items-center'>
+        <div>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Profile</h1>
+          <p className='text-gray-600'>
+            Track your learning progress and achievements
+          </p>
+        </div>
+        <Link
+          href='/profile/edit'
+          className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors'
+        >
+          Edit Profile
+        </Link>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
@@ -42,6 +51,14 @@ export function Profile() {
                 {loggedInUser?.name || 'Anonymous User'}
               </h2>
               <p className='text-gray-600'>{loggedInUser?.email}</p>
+              {loggedInUser?.bio && (
+                <p className='text-gray-600 mt-2 text-sm'>{loggedInUser.bio}</p>
+              )}
+              {loggedInUser?.location && (
+                <p className='text-gray-500 text-sm mt-1'>
+                  📍 {loggedInUser.location}
+                </p>
+              )}
             </div>
 
             <div className='space-y-4'>
@@ -66,6 +83,49 @@ export function Profile() {
                 </span>
               </div>
             </div>
+
+            {/* Social Links */}
+            {(loggedInUser?.socialLinks?.twitter ||
+              loggedInUser?.socialLinks?.linkedin ||
+              loggedInUser?.socialLinks?.github) && (
+              <div className='mt-6 pt-6 border-t border-gray-200'>
+                <h4 className='text-sm font-medium text-gray-700 mb-3'>
+                  Social Links
+                </h4>
+                <div className='flex space-x-3'>
+                  {loggedInUser.socialLinks?.twitter && (
+                    <a
+                      href={loggedInUser.socialLinks.twitter}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-blue-500 hover:text-blue-600'
+                    >
+                      Twitter
+                    </a>
+                  )}
+                  {loggedInUser.socialLinks?.linkedin && (
+                    <a
+                      href={loggedInUser.socialLinks.linkedin}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-blue-500 hover:text-blue-600'
+                    >
+                      LinkedIn
+                    </a>
+                  )}
+                  {loggedInUser.socialLinks?.github && (
+                    <a
+                      href={loggedInUser.socialLinks.github}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-blue-500 hover:text-blue-600'
+                    >
+                      GitHub
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

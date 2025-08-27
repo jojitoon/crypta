@@ -675,3 +675,114 @@ export const deleteEvent = mutation({
     return { success: true };
   },
 });
+
+// Update user profile (admin function)
+export const updateUserProfileAdmin = mutation({
+  args: {
+    userId: v.id('users'),
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    location: v.optional(v.string()),
+    website: v.optional(v.string()),
+    socialLinks: v.optional(
+      v.object({
+        twitter: v.optional(v.string()),
+        linkedin: v.optional(v.string()),
+        github: v.optional(v.string()),
+      })
+    ),
+    isAdmin: v.optional(v.boolean()),
+    isActive: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const { userId, ...updates } = args;
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await ctx.db.patch(userId, updates);
+    return { success: true };
+  },
+});
+
+// Get user profile for admin editing
+export const getUserProfileForAdmin = query({
+  args: {
+    userId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    await checkAdminAccess(ctx);
+
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Get additional user data
+    const stats = await ctx.db
+      .query('userStats')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .first();
+
+    const achievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .collect();
+
+    const coursesCreated = await ctx.db
+      .query('courses')
+      .withIndex('by_created_by', (q) => q.eq('createdBy', args.userId))
+      .collect();
+
+    const userProgress = await ctx.db
+      .query('userProgress')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .collect();
+
+    return {
+      ...user,
+      stats: stats || null,
+      achievementsCount: achievements.length,
+      coursesCreatedCount: coursesCreated.length,
+      lessonsCompleted: userProgress.filter((p) => p.completed).length,
+    };
+  },
+});
+
+// Migration function to update existing users with new profile fields
+export const migrateUserProfiles = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await checkAdminAccess(ctx);
+
+    const users = await ctx.db.query('users').collect();
+    let updatedCount = 0;
+
+    for (const user of users) {
+      const updates: any = {};
+
+      // Only update if fields don't exist
+      if (user.bio === undefined) updates.bio = '';
+      if (user.location === undefined) updates.location = '';
+      if (user.website === undefined) updates.website = '';
+      if (user.avatarUrl === undefined) updates.avatarUrl = '';
+      if (user.socialLinks === undefined)
+        updates.socialLinks = { twitter: '', linkedin: '', github: '' };
+      if (user.isActive === undefined) updates.isActive = true;
+      if (user.notes === undefined) updates.notes = '';
+
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(user._id, updates);
+        updatedCount++;
+      }
+    }
+
+    return { success: true, updatedCount };
+  },
+});

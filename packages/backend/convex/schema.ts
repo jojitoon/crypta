@@ -391,6 +391,20 @@ export default defineSchema({
     emailVerificationTime: v.optional(v.number()),
     phoneVerificationTime: v.optional(v.number()),
     isAdmin: v.optional(v.boolean()),
+    // Additional profile fields
+    bio: v.optional(v.string()),
+    location: v.optional(v.string()),
+    website: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    socialLinks: v.optional(
+      v.object({
+        twitter: v.optional(v.string()),
+        linkedin: v.optional(v.string()),
+        github: v.optional(v.string()),
+      })
+    ),
+    isActive: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
   })
     .index('by_admin', ['isAdmin'])
     .index('by_email', ['email']),
