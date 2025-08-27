@@ -1,6 +1,7 @@
 'use client';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Button } from '@repo/ui/button';
+import { useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -10,6 +11,17 @@ export function SignInForm() {
   const [flow, setFlow] = useState<'signIn' | 'signUp'>('signIn');
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const { isLoading, isAuthenticated } = useConvexAuth();
+
+  if (isLoading) {
+    return (
+      <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
+    );
+  }
+
+  if (isAuthenticated) {
+    router.push('/dashboard');
+  }
 
   return (
     <div className='w-full'>
@@ -18,10 +30,14 @@ export function SignInForm() {
         onSubmit={(e) => {
           e.preventDefault();
           setSubmitting(true);
-          const formData = new FormData(e.target as HTMLFormElement);
-          formData.set('flow', flow);
-          void signIn('password', formData)
+          const formData = new FormData(e.currentTarget as HTMLFormElement);
+          void signIn('password', {
+            email: formData.get('email') as string,
+            password: formData.get('password') as string,
+            flow,
+          })
             .catch((error) => {
+              console.log(error);
               let toastTitle = '';
               if (error.message.includes('Invalid password')) {
                 toastTitle = 'Invalid password. Please try again.';
@@ -34,8 +50,12 @@ export function SignInForm() {
               toast.error(toastTitle);
               setSubmitting(false);
             })
-            .then(async () => {
-              await router.push('/dashboard');
+            .then(() => {
+              toast.success(
+                flow === 'signIn'
+                  ? 'Signed in successfully'
+                  : 'Signed up successfully'
+              );
             });
         }}
       >
@@ -75,7 +95,7 @@ export function SignInForm() {
           </button>
         </div>
       </form>
-      <div className='flex items-center justify-center my-3'>
+      {/* <div className='flex items-center justify-center my-3'>
         <hr className='my-4 grow border-gray-200' />
         <span className='mx-4 text-secondary'>or</span>
         <hr className='my-4 grow border-gray-200' />
@@ -89,7 +109,7 @@ export function SignInForm() {
         }
       >
         Sign in anonymously
-      </Button>
+      </Button> */}
     </div>
   );
 }

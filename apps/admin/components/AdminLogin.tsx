@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { useConvexAuth, useMutation } from 'convex/react';
-import { api } from '@repo/backend/convex';
+import { useConvexAuth } from 'convex/react';
 import { toast } from 'sonner';
 import { useAuthActions } from '@convex-dev/auth/react';
 
-export function AdminLogin() {
+export function AdminLogin({
+  setShowRegister,
+}: {
+  setShowRegister: (show: boolean) => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isFirstUser, setIsFirstUser] = useState(false);
 
   const { isAuthenticated } = useConvexAuth();
   const { signIn } = useAuthActions();
-  const makeFirstUserAdmin = useMutation(api.admin.makeFirstUserAdmin);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,21 +26,6 @@ export function AdminLogin() {
       toast.success('Login successful!');
     } catch (error) {
       toast.error('Login failed. Please check your credentials.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleMakeFirstUserAdmin = async () => {
-    setIsLoading(true);
-    try {
-      await makeFirstUserAdmin({});
-      toast.success('You are now an admin! Please sign in.');
-      setIsFirstUser(false);
-    } catch (error) {
-      toast.error(
-        'Failed to make first user admin. You may not be the first user.'
-      );
     } finally {
       setIsLoading(false);
     }
@@ -108,23 +94,12 @@ export function AdminLogin() {
               )}
             </button>
           </div>
-
-          {/* First User Admin Setup */}
-          <div className='mt-4 pt-4 border-t border-gray-200'>
-            <p className='text-sm text-gray-600 mb-3'>
-              First time setup? Make yourself an admin:
-            </p>
+          <div className='text-center'>
             <button
-              type='button'
-              onClick={handleMakeFirstUserAdmin}
-              disabled={isLoading}
-              className='w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+              onClick={() => setShowRegister(true)}
+              className='px-4 py-2 text-sm text-gray-600 hover:text-gray-900'
             >
-              {isLoading ? (
-                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600'></div>
-              ) : (
-                'Make First User Admin'
-              )}
+              Create an account
             </button>
           </div>
         </form>

@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuthActions } from '@convex-dev/auth/react';
 
-export function AdminRegister() {
+export function AdminRegister({
+  setShowRegister,
+}: {
+  setShowRegister: (show: boolean) => void;
+}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -111,6 +115,14 @@ export function AdminRegister() {
               ) : (
                 'Create Account'
               )}
+            </button>
+          </div>
+          <div className='text-center'>
+            <button
+              onClick={() => setShowRegister(false)}
+              className='px-4 py-2 text-sm text-gray-600 hover:text-gray-900'
+            >
+              ← Back to Login
             </button>
           </div>
         </form>

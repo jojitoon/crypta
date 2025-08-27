@@ -245,7 +245,7 @@ function Header() {
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
 
-  console.log('isAuthenticated', isAuthenticated);
+  console.log('isAuthenticated', isAuthenticated, isLoading);
 
   if (!isAuthenticated && !isLoading) {
     return redirect('/login');

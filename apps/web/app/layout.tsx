@@ -5,6 +5,7 @@ import './index.css';
 import { Geist } from 'next/font/google';
 import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { ConvexReactClient } from 'convex/react';
+import { Toaster } from 'sonner';
 
 const geist = Geist({ subsets: ['latin'] });
 
@@ -23,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={geist.className}>
-        <ConvexAuthProvider client={convex}>{children}</ConvexAuthProvider>
+        <ConvexAuthProvider client={convex}>
+          <Toaster position='top-center' />
+          {children}
+        </ConvexAuthProvider>
       </body>
     </html>
   );

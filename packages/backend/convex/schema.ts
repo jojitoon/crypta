@@ -390,7 +390,6 @@ export default defineSchema({
     image: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
     phoneVerificationTime: v.optional(v.number()),
-    isAnonymous: v.optional(v.boolean()),
     isAdmin: v.optional(v.boolean()),
   })
     .index('by_admin', ['isAdmin'])

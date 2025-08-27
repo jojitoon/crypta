@@ -8,6 +8,8 @@ export function Profile() {
   const achievements = useQuery(api.achievements.getUserAchievements);
   const leaderboard = useQuery(api.achievements.getLeaderboard, { limit: 10 });
 
+  console.log({ loggedInUser });
+
   if (userStats === undefined || achievements === undefined) {
     return (
       <div className='flex justify-center items-center min-h-96'>
