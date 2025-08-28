@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuthActions } from '@convex-dev/auth/react';
+import Image from 'next/image';
 
 export function AdminRegister({
   setShowRegister,
@@ -34,8 +35,14 @@ export function AdminRegister({
     <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
       <div className='max-w-md w-full space-y-8'>
         <div>
-          <div className='mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100'>
-            <span className='text-2xl'>👤</span>
+          <div className='mx-auto flex items-center justify-center'>
+            <Image
+              src='/logo.png'
+              alt='CryptoLearn Logo'
+              width={100}
+              height={32}
+              className='w-36 h-12'
+            />
           </div>
           <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
             Create Admin Account

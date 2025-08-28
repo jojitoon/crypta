@@ -11,6 +11,7 @@ import { CommunityManagement } from './CommunityManagement';
 import { CredentialsManagement } from './CredentialsManagement';
 import { ContentManagement } from './ContentManagement';
 import { useAuthActions } from '@convex-dev/auth/react';
+import Image from 'next/image';
 
 type TabType =
   | 'overview'
@@ -50,9 +51,16 @@ export function AdminDashboard() {
       <header className='bg-white shadow-sm border-b border-gray-200'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex justify-between items-center h-16'>
-            <div className='flex items-center'>
+            <div className='flex items-center space-x-2'>
+              <Image
+                src='/logo.png'
+                alt='CryptoLearn Logo'
+                width={100}
+                height={32}
+                className='w-36 h-12'
+              />
               <h1 className='text-xl font-semibold text-gray-900'>
-                Crypta Admin Panel
+                Admin Panel
               </h1>
             </div>
             <div className='flex items-center space-x-4'>

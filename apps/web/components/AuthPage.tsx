@@ -1,4 +1,5 @@
 import { SignInForm } from './SignInForm';
+import Image from 'next/image';
 
 export function AuthPage() {
   return (
@@ -8,8 +9,13 @@ export function AuthPage() {
           {/* Header */}
           <div className='text-center mb-8'>
             <div className='flex items-center justify-center space-x-2 text-2xl font-bold text-gray-900 mb-2'>
-              <span>🚀</span>
-              <span>CryptoLearn</span>
+              <Image
+                src='/logo.png'
+                alt='CryptoLearn Logo'
+                width={100}
+                height={32}
+                className='w-36 h-12'
+              />
             </div>
             <p className='text-gray-600'>
               Sign in to continue your crypto learning journey

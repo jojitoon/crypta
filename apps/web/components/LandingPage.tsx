@@ -20,8 +20,13 @@ export function LandingPage() {
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex justify-between items-center h-16'>
             <div className='flex items-center space-x-2 text-xl font-bold text-gray-900'>
-              <span className='text-2xl'>🚀</span>
-              <span>CryptoLearn</span>
+              <Image
+                src='/logo.png'
+                alt='CryptoLearn Logo'
+                width={100}
+                height={32}
+                className='w-36 h-12'
+              />
             </div>
             <button
               onClick={() => (window.location.href = '/login')}
@@ -37,7 +42,15 @@ export function LandingPage() {
       <section className='relative overflow-hidden'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16'>
           <div className='text-center'>
-            <div className='text-8xl mb-6'>🚀</div>
+            <div className='flex justify-center mb-6'>
+              <Image
+                src='/logo.png'
+                alt='CryptoLearn Logo'
+                width={120}
+                height={120}
+                className='w-60 h-20'
+              />
+            </div>
             <h1 className='text-5xl md:text-6xl font-bold text-gray-900 mb-6'>
               Master the Future of
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600'>

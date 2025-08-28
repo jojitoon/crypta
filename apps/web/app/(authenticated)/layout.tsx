@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { SignOutButton } from '../../components/SignOutButton';
 import { redirect } from 'next/navigation';
 import { useState } from 'react';
+import Image from 'next/image';
 
 function Header() {
   const userStats = useQuery(api.achievements.getUserStats);
@@ -18,8 +19,14 @@ function Header() {
               href='/dashboard'
               className='flex items-center space-x-2 text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors'
             >
-              <span className='text-2xl'>🚀</span>
-              <span>CryptoLearn</span>
+              <Image
+                src='/logo.png'
+                alt='CryptoLearn Logo'
+                width={120}
+                height={32}
+                className='w-36 h-12'
+              />
+              {/* <span>CryptoLearn</span> */}
             </Link>
 
             <nav className='hidden md:block relative'>
@@ -244,8 +251,6 @@ function Header() {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
-
-  console.log('isAuthenticated', isAuthenticated, isLoading);
 
   if (!isAuthenticated && !isLoading) {
     return redirect('/login');
