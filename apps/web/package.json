@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.88",
+    "@mux/mux-player-react": "^3.5.3",
     "@repo/backend": "workspace:*",
     "@repo/ui": "workspace:*",
     "convex": "^1.25.4",

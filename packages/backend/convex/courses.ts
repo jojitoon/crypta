@@ -326,9 +326,16 @@ export const createLesson = mutation({
       throw new Error('Must be authenticated');
     }
 
+    // Verify the course belongs to the user
+    const course = await ctx.db.get(args.courseId);
+    if (!course || course.createdBy !== userId) {
+      throw new Error('Unauthorized to create lesson for this course');
+    }
+
     const lessonId = await ctx.db.insert('lessons', {
       ...args,
       isPublished: args.isPublished ?? true,
+      videoStatus: args.type === 'video' ? 'uploading' : undefined,
     });
 
     return { lessonId };

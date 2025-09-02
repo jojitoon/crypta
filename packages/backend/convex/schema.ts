@@ -30,6 +30,19 @@ const applicationTables = {
     title: v.string(),
     content: v.string(),
     videoUrl: v.optional(v.string()),
+    // Mux video asset fields
+    muxAssetId: v.optional(v.string()),
+    muxPlaybackId: v.optional(v.string()),
+    muxUploadId: v.optional(v.string()),
+    videoDuration: v.optional(v.number()), // in seconds
+    videoStatus: v.optional(
+      v.union(
+        v.literal('uploading'),
+        v.literal('processing'),
+        v.literal('ready'),
+        v.literal('failed')
+      )
+    ),
     duration: v.number(), // in minutes
     order: v.number(),
     type: v.union(v.literal('video'), v.literal('text'), v.literal('quiz')),

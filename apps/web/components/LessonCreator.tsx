@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { api } from '@repo/backend/convex';
 import { useParams, useRouter } from 'next/navigation';
 import { Id } from '@repo/backend/dataModel';
+import { VideoUpload } from './VideoUpload';
 
 export function LessonCreator() {
   const { courseId } = useParams<{ courseId: Id<'courses'> }>();
@@ -23,24 +24,43 @@ export function LessonCreator() {
     videoUrl: '',
     isPublished: true,
   });
+  const [createdLessonId, setCreatedLessonId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!courseId) {
       toast.error('Course ID not found');
+      return;
+    }
+
+    // Validate form data based on lesson type
+    if (formData.type === 'text' && !formData.content.trim()) {
+      toast.error('Please provide lesson content for text lessons');
+      return;
+    }
+
+    if (formData.type === 'video' && !formData.title.trim()) {
+      toast.error('Please provide a lesson title for video lessons');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await createLesson({
+      const result = await createLesson({
         courseId: courseId,
         ...formData,
       });
 
-      toast.success('Lesson created successfully!');
-      router.push(`/courses/${courseId}`);
+      if (formData.type === 'video') {
+        // For video lessons, store the lesson ID to show upload component
+        setCreatedLessonId(result.lessonId);
+        toast.success('Lesson created! Now upload your video.');
+      } else {
+        toast.success('Lesson created successfully!');
+        router.push(`/courses/${courseId}`);
+      }
     } catch (error) {
       toast.error('Failed to create lesson. Please try again.');
       console.error('Error creating lesson:', error);
@@ -53,11 +73,66 @@ export function LessonCreator() {
     field: string,
     value: string | number | boolean
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+
+      // If changing to video type, clear content requirement
+      if (field === 'type' && value === 'video') {
+        newData.content = ''; // Clear content for video lessons
+      }
+
+      return newData;
+    });
   };
+
+  // If we have a created lesson ID and it's a video lesson, show the upload component
+  if (createdLessonId && formData.type === 'video') {
+    return (
+      <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='bg-white rounded-2xl shadow-lg border border-gray-100 p-8'>
+          <div className='mb-8'>
+            <div className='flex justify-between items-center mb-4'>
+              <h1 className='text-3xl font-bold text-gray-900'>
+                Upload Video for Lesson
+              </h1>
+              <button
+                onClick={() => router.push(`/courses/${courseId}`)}
+                className='text-blue-600 hover:text-blue-700 font-medium'
+              >
+                ← Back to Course
+              </button>
+            </div>
+            <p className='text-gray-600'>
+              Upload your video content for "{formData.title}"
+            </p>
+          </div>
+
+          <VideoUpload
+            lessonId={createdLessonId!}
+            onUploadComplete={() => {
+              toast.success('Video uploaded and processed successfully!');
+              router.push(`/courses/${courseId}`);
+            }}
+            onUploadStart={() => {
+              toast.info('Video upload started. This may take a few minutes.');
+            }}
+          />
+
+          <div className='mt-6 text-center'>
+            <button
+              onClick={() => router.push(`/courses/${courseId}`)}
+              className='px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors'
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
@@ -176,7 +251,7 @@ export function LessonCreator() {
                 </div>
               ) : (
                 <textarea
-                  required
+                  required={formData.type === 'text'}
                   value={formData.content}
                   onChange={(e) => handleInputChange('content', e.target.value)}
                   className='w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[400px] font-mono text-sm'
@@ -202,19 +277,40 @@ This lesson covered...`}
           ) : formData.type === 'video' ? (
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
-                Video URL *
+                Video Content
               </label>
-              <input
-                type='url'
-                required
-                value={formData.videoUrl}
-                onChange={(e) => handleInputChange('videoUrl', e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                placeholder='https://example.com/video.mp4'
-              />
-              <p className='text-sm text-gray-500 mt-1'>
-                Enter the URL of your video content
+              <p className='text-sm text-gray-500 mb-4'>
+                After creating the lesson, you'll be able to upload your video
+                file directly. Supported formats: MP4, MOV, AVI. Max size:
+                100MB.
               </p>
+              <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+                <div className='flex items-center'>
+                  <div className='text-blue-600 mr-3'>
+                    <svg
+                      className='h-5 w-5'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                      />
+                    </svg>
+                  </div>
+                  <div className='text-sm text-blue-800'>
+                    <p className='font-medium'>Video Upload</p>
+                    <p>
+                      You'll upload your video after creating the lesson. This
+                      ensures better organization and allows for proper video
+                      processing.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div>

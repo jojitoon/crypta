@@ -12,7 +12,8 @@
   "dependencies": {
     "@convex-dev/auth": "^0.0.88",
     "convex": "^1.25.4",
-    "dotenv": "^17.2.1"
+    "dotenv": "^17.2.1",
+    "@mux/mux-node": "^8.0.0"
   },
   "exports": {
     "./convex": "./convex/_generated/api.js",

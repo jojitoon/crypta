@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { api } from '@repo/backend/convex';
 import { useParams, useRouter } from 'next/navigation';
 import { Id } from '@repo/backend/dataModel';
+import { VideoPlayer } from './VideoPlayer';
 
 export function LessonView() {
   const { lessonId } = useParams<{ lessonId: Id<'lessons'> }>();
@@ -242,15 +243,33 @@ export function LessonView() {
           renderQuiz()
         ) : (
           <>
-            {lesson.videoUrl ? (
+            {lesson.type === 'video' &&
+            (lesson.muxPlaybackId || lesson.videoUrl) ? (
               <div className='mt-8'>
-                <video
-                  controls
-                  className='w-full rounded-lg'
-                  src={lesson.videoUrl}
-                >
-                  Your browser does not support the video tag.
-                </video>
+                {lesson.muxPlaybackId ? (
+                  <VideoPlayer
+                    lessonId={lessonId}
+                    className='w-full h-96'
+                    onTimeUpdate={(currentTime) => {
+                      // Track video progress if needed
+                      console.log('Video time:', currentTime);
+                    }}
+                    onEnded={() => {
+                      // Auto-complete lesson when video ends
+                      if (!lesson.completed) {
+                        handleCompleteLesson();
+                      }
+                    }}
+                  />
+                ) : lesson.videoUrl ? (
+                  <video
+                    controls
+                    className='w-full rounded-lg'
+                    src={lesson.videoUrl}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                ) : null}
               </div>
             ) : (
               <div className='prose max-w-none text-gray-800 leading-relaxed'>
