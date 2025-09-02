@@ -15,7 +15,9 @@ export function SignInForm() {
 
   if (isLoading) {
     return (
-      <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
+      <div className='flex justify-center items-center min-h-[235px]'>
+        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600' />
+      </div>
     );
   }
 
