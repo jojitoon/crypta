@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useMutation } from 'convex/react';
+import { useAction } from 'convex/react';
 import { api } from '@repo/backend/convex';
 import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle, Shield } from 'lucide-react';
@@ -12,7 +12,7 @@ export function AdminForgotPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const forgotPassword = useMutation(api.auth.forgotPassword);
+  const forgotPassword = useAction(api.auth.forgotPassword);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
