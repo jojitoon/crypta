@@ -101,13 +101,24 @@ export function AdminLogin({
               )}
             </button>
           </div>
-          <div className='text-center'>
-            <button
-              onClick={() => setShowRegister(true)}
-              className='px-4 py-2 text-sm text-gray-600 hover:text-gray-900'
-            >
-              Create an account
-            </button>
+
+          <div className='text-center space-y-2'>
+            <div>
+              <a
+                href='/forgot-password'
+                className='text-sm text-blue-600 hover:text-blue-700 hover:underline'
+              >
+                Forgot your password?
+              </a>
+            </div>
+            <div>
+              <button
+                onClick={() => setShowRegister(true)}
+                className='px-4 py-2 text-sm text-gray-600 hover:text-gray-900'
+              >
+                Create an account
+              </button>
+            </div>
           </div>
         </form>
       </div>

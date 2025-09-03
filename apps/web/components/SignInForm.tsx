@@ -82,6 +82,18 @@ export function SignInForm() {
         >
           {flow === 'signIn' ? 'Sign in' : 'Sign up'}
         </Button>
+
+        {flow === 'signIn' && (
+          <div className='text-center'>
+            <a
+              href='/forgot-password'
+              className='text-sm text-blue-600 hover:text-blue-700 hover:underline'
+            >
+              Forgot your password?
+            </a>
+          </div>
+        )}
+
         <div className='text-center text-sm text-secondary'>
           <span>
             {flow === 'signIn'

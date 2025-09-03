@@ -21,6 +21,7 @@ import type * as community from "../community.js";
 import type * as consulting from "../consulting.js";
 import type * as courses from "../courses.js";
 import type * as credentials from "../credentials.js";
+import type * as emailActions from "../emailActions.js";
 import type * as events from "../events.js";
 import type * as governance from "../governance.js";
 import type * as http from "../http.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   consulting: typeof consulting;
   courses: typeof courses;
   credentials: typeof credentials;
+  emailActions: typeof emailActions;
   events: typeof events;
   governance: typeof governance;
   http: typeof http;

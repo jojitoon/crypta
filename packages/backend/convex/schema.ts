@@ -404,6 +404,9 @@ export default defineSchema({
     emailVerificationTime: v.optional(v.number()),
     phoneVerificationTime: v.optional(v.number()),
     isAdmin: v.optional(v.boolean()),
+    // Password reset fields
+    resetToken: v.optional(v.string()),
+    resetTokenExpiry: v.optional(v.number()),
     // Additional profile fields
     bio: v.optional(v.string()),
     location: v.optional(v.string()),
