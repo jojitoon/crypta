@@ -68,7 +68,7 @@ export default function PaymentSuccessPage() {
                 Your Latest Purchase
               </h2>
               <div className='text-left'>
-                {myPurchases[0].course && (
+                {myPurchases?.[0]?.course && (
                   <>
                     <h3 className='font-medium text-gray-900'>
                       {myPurchases[0].course.title}

@@ -234,15 +234,17 @@ export const hasAccessToCourses = query({
     // Check access for each course
     for (let i = 0; i < args.courseIds.length; i++) {
       const courseId = args.courseIds[i];
+      if (!courseId) continue;
+
       const course = courses[i];
 
-      if (!course) {
+      if (!course && courseId) {
         result[courseId] = false;
         continue;
       }
 
       // Free courses or preview courses are accessible
-      if (course.isFree || course.isPreview || !course.price) {
+      if ((course?.isFree || course?.isPreview || !course?.price) && courseId) {
         result[courseId] = true;
         continue;
       }

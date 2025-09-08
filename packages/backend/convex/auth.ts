@@ -128,8 +128,16 @@ export const forgotPassword = action({
 
       const user = users[0];
 
+      if (!user) {
+        return {
+          success: true,
+          message:
+            'If an account with that email exists, a password reset link has been sent.',
+        };
+      }
+
       // Check if user is admin when requesting admin reset
-      if (args.isAdmin && !user.isAdmin) {
+      if (args.isAdmin && !user?.isAdmin) {
         return { success: false, message: 'Invalid email address.' };
       }
 
@@ -139,7 +147,7 @@ export const forgotPassword = action({
 
       // Store reset token
       await ctx.runMutation(internal.auth.storePasswordResetToken, {
-        userId: user._id,
+        userId: user?._id,
         resetToken,
         tokenExpiry,
       });
