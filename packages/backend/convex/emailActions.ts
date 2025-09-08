@@ -3,8 +3,60 @@
 import { Resend } from 'resend';
 import { internalAction } from './_generated/server';
 import { v } from 'convex/values';
+import { internal } from './_generated/api';
 
-// Send password reset email using Resend
+// Internal action for sending emails using Resend
+export const sendEmail = internalAction({
+  args: {
+    to: v.array(v.string()),
+    subject: v.string(),
+    html: v.string(),
+    text: v.string(),
+    from: v.optional(v.string()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    message: v.string(),
+    data: v.any(),
+  }),
+  handler: async (ctx, args) => {
+    try {
+      if (!process.env.RESEND_API_KEY) {
+        throw new Error('RESEND_API_KEY environment variable is not set');
+      }
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const emailResult = await resend.emails.send({
+        from:
+          args.from || process.env.RESEND_FROM_EMAIL || 'noreply@crypta.com',
+        to: args.to,
+        subject: args.subject,
+        html: args.html,
+        text: args.text,
+      });
+
+      console.log(
+        `Email sent successfully to ${args.to.join(', ')}:`,
+        emailResult
+      );
+      return {
+        success: true,
+        message: 'Email sent successfully',
+        data: emailResult,
+      };
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      return {
+        success: false,
+        message: `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        data: null,
+      };
+    }
+  },
+});
+
+// Send password reset email using the internal sendEmail action
 export const sendPasswordResetEmail = internalAction({
   args: {
     email: v.string(),
@@ -14,12 +66,6 @@ export const sendPasswordResetEmail = internalAction({
   returns: v.object({ success: v.boolean(), message: v.string() }),
   handler: async (ctx, args) => {
     try {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
-      if (!process.env.RESEND_API_KEY) {
-        throw new Error('RESEND_API_KEY environment variable is not set');
-      }
-
       const baseUrl = args.isAdmin
         ? process.env.ADMIN_URL || 'http://localhost:3001'
         : process.env.WEB_URL || 'http://localhost:3000';
@@ -138,19 +184,16 @@ export const sendPasswordResetEmail = internalAction({
         This is an automated message from Crypta. Please do not reply to this email.
       `;
 
-      const emailResult = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'noreply@crypta.com',
-        to: [args.email],
-        subject: subject,
-        html: htmlContent,
-        text: textContent,
-      });
+      // Use the internal sendEmail action
+      const result: { success: boolean; message: string; data: any } =
+        await ctx.runAction(internal.emailActions.sendEmail, {
+          to: [args.email],
+          subject: subject,
+          html: htmlContent,
+          text: textContent,
+        });
 
-      console.log(
-        `Password reset email sent successfully to ${args.email}:`,
-        emailResult
-      );
-      return { success: true, message: 'Email sent successfully' };
+      return { success: result.success, message: result.message };
     } catch (error) {
       console.error('Failed to send password reset email:', error);
       return { success: false, message: 'Failed to send email' };

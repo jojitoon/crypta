@@ -379,20 +379,12 @@ export const sendEmailVerification = action({
       expiryTime,
     });
 
-    // Send email using Resend library
+    // Send email using the internal sendEmail action
     try {
       // For development/testing, log the verification code
       console.log(
         `🔐 VERIFICATION CODE for ${user.email}: ${verificationCode}`
       );
-
-      // Import Resend library
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
-      if (!process.env.RESEND_API_KEY) {
-        throw new Error('RESEND_API_KEY environment variable is not set');
-      }
 
       const htmlContent = `
         <!DOCTYPE html>
@@ -500,20 +492,33 @@ export const sendEmailVerification = action({
         This is an automated message from Digital Assets Academy. Please do not reply to this email.
       `;
 
-      const emailResult = await resend.emails.send({
-        from:
-          process.env.RESEND_FROM_EMAIL || 'noreply@digitalassetsaceademy.io',
-        to: [user.email],
-        subject: 'Verify Your Email - Digital Assets Academy',
-        html: htmlContent,
-        text: textContent,
-      });
+      // Use the internal sendEmail action
+      const result: { success: boolean; message: string; data: any } =
+        await ctx.runAction(internal.emailActions.sendEmail, {
+          to: [user.email],
+          subject: 'Verify Your Email - Digital Assets Academy',
+          html: htmlContent,
+          text: textContent,
+          from:
+            process.env.RESEND_FROM_EMAIL || 'noreply@digitalassetsaceademy.io',
+        });
 
-      console.log(
-        `Verification email sent successfully to ${user.email}:`,
-        emailResult
-      );
-      return { success: true, message: 'Verification code sent to your email' };
+      if (result.success) {
+        console.log(`Verification email sent successfully to ${user.email}`);
+        return {
+          success: true,
+          message: 'Verification code sent to your email',
+        };
+      } else {
+        // For development, don't fail if email sending fails
+        console.log(
+          '⚠️ Email sending failed, but verification code is logged above'
+        );
+        return {
+          success: true,
+          message: 'Verification code sent (check console for code)',
+        };
+      }
     } catch (error) {
       console.error('Email sending error:', error);
       // For development, don't fail if email sending fails
@@ -608,14 +613,6 @@ export const testEmailSending = action({
     }
 
     try {
-      // Import Resend library
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
-      if (!process.env.RESEND_API_KEY) {
-        throw new Error('RESEND_API_KEY environment variable is not set');
-      }
-
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -699,17 +696,18 @@ export const testEmailSending = action({
         This is a test message from Digital Assets Academy.
       `;
 
-      await resend.emails.send({
-        from:
-          process.env.RESEND_FROM_EMAIL || 'noreply@digitalassetsaceademy.io',
-        to: [user.email],
-        subject: 'Test Email - Digital Assets Academy',
-        html: htmlContent,
-        text: textContent,
-      });
+      // Use the internal sendEmail action
+      const result: { success: boolean; message: string; data: any } =
+        await ctx.runAction(internal.emailActions.sendEmail, {
+          to: [user.email],
+          subject: 'Test Email - Digital Assets Academy',
+          html: htmlContent,
+          text: textContent,
+          from:
+            process.env.RESEND_FROM_EMAIL || 'noreply@digitalassetsaceademy.io',
+        });
 
-      console.log(`Test email sent successfully to ${user.email}`);
-      return { success: true, message: 'Test email sent successfully' };
+      return { success: result.success, message: result.message };
     } catch (error) {
       console.error('Test email sending error:', error);
       return {
