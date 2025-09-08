@@ -53,11 +53,15 @@ export function SignInForm() {
               setSubmitting(false);
             })
             .then(() => {
-              toast.success(
-                flow === 'signIn'
-                  ? 'Signed in successfully'
-                  : 'Signed up successfully'
-              );
+              if (flow === 'signIn') {
+                toast.success('Signed in successfully');
+                router.push('/dashboard');
+              } else {
+                toast.success(
+                  'Signed up successfully! Please verify your email.'
+                );
+                router.push('/verify-email');
+              }
             });
         }}
       >

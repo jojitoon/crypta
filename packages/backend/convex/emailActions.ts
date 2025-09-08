@@ -138,7 +138,7 @@ export const sendPasswordResetEmail = internalAction({
         This is an automated message from Crypta. Please do not reply to this email.
       `;
 
-      await resend.emails.send({
+      const emailResult = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@crypta.com',
         to: [args.email],
         subject: subject,
@@ -146,7 +146,10 @@ export const sendPasswordResetEmail = internalAction({
         text: textContent,
       });
 
-      console.log(`Password reset email sent successfully to ${args.email}`);
+      console.log(
+        `Password reset email sent successfully to ${args.email}:`,
+        emailResult
+      );
       return { success: true, message: 'Email sent successfully' };
     } catch (error) {
       console.error('Failed to send password reset email:', error);

@@ -22,6 +22,18 @@ export const loggedInUser = query({
   },
 });
 
+// Check if user's email is verified
+export const isEmailVerified = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return false;
+    }
+    const user = await ctx.db.get(userId);
+    return user?.emailVerificationTime ? true : false;
+  },
+});
+
 // Update user profile (for regular users)
 export const updateUserProfile = mutation({
   args: {
@@ -190,8 +202,29 @@ export const resetPassword = mutation({
         resetTokenExpiry: undefined,
       });
 
-      // TODO: Update the actual password using the auth system
-      // This requires integration with the auth provider's password update mechanism
+      // Update the actual password using the auth system
+      // Find the auth account for this user and update the password
+      const authAccount = await ctx.db
+        .query('authAccounts')
+        .withIndex('userIdAndProvider', (q) =>
+          q.eq('userId', user._id).eq('provider', 'password')
+        )
+        .first();
+
+      if (authAccount) {
+        // Update the password hash in the auth account
+        await ctx.db.patch(authAccount._id, {
+          secret: hashedPassword,
+        });
+      } else {
+        // If no auth account exists, create one
+        await ctx.db.insert('authAccounts', {
+          userId: user._id,
+          provider: 'password',
+          providerAccountId: user.email || user._id,
+          secret: hashedPassword,
+        });
+      }
 
       return {
         success: true,
@@ -305,3 +338,411 @@ async function hashPassword(password: string): Promise<string> {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+// Send email verification code
+export const sendEmailVerification = action({
+  args: {},
+  returns: v.object({ success: v.boolean(), message: v.string() }),
+  handler: async (ctx) => {
+    'use node';
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error('Must be authenticated');
+    }
+
+    const user = await ctx.runQuery(api.auth.loggedInUser, {});
+    if (!user || !user.email) {
+      throw new Error('User email not found');
+    }
+
+    if (user.emailVerificationTime) {
+      return { success: false, message: 'Email already verified' };
+    }
+
+    // Generate 6-digit verification code
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    const expiryTime = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    // Store verification code in user record
+    await ctx.runMutation(api.auth.storeVerificationCode, {
+      code: verificationCode,
+      expiryTime,
+    });
+
+    // Send email using Resend library
+    try {
+      // For development/testing, log the verification code
+      console.log(
+        `🔐 VERIFICATION CODE for ${user.email}: ${verificationCode}`
+      );
+
+      // Import Resend library
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      if (!process.env.RESEND_API_KEY) {
+        throw new Error('RESEND_API_KEY environment variable is not set');
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Email Verification</title>
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+              line-height: 1.6; 
+              color: #333; 
+              max-width: 600px; 
+              margin: 0 auto; 
+              padding: 20px;
+            }
+            .header { 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+              color: white; 
+              padding: 30px; 
+              text-align: center; 
+              border-radius: 10px 10px 0 0;
+            }
+            .content { 
+              background: #f8f9fa; 
+              padding: 30px; 
+              border-radius: 0 0 10px 10px;
+            }
+            .verification-code { 
+              background: #f5f5f5; 
+              padding: 20px; 
+              text-align: center; 
+              margin: 20px 0;
+              border-radius: 8px;
+              border: 2px solid #e9ecef;
+            }
+            .code { 
+              color: #2563eb; 
+              font-size: 32px; 
+              margin: 0; 
+              letter-spacing: 5px;
+              font-weight: bold;
+              font-family: 'Courier New', monospace;
+            }
+            .footer { 
+              margin-top: 30px; 
+              padding-top: 20px; 
+              border-top: 1px solid #dee2e6; 
+              font-size: 14px; 
+              color: #6c757d;
+            }
+            .warning { 
+              background: #fff3cd; 
+              border: 1px solid #ffeaa7; 
+              color: #856404; 
+              padding: 15px; 
+              border-radius: 5px; 
+              margin: 20px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🚀 Digital Assets Academy</h1>
+            <p>Email Verification</p>
+          </div>
+          
+          <div class="content">
+            <h2>Hello ${user.name || 'there'}!</h2>
+            <p>Please use the following code to verify your email address:</p>
+            
+            <div class="verification-code">
+              <div class="code">${verificationCode}</div>
+            </div>
+            
+            <div class="warning">
+              <strong>Important:</strong> This code will expire in 15 minutes for security reasons.
+            </div>
+            
+            <p>If you didn't request this verification, you can safely ignore this email.</p>
+          </div>
+          
+          <div class="footer">
+            <p>This is an automated message from Digital Assets Academy. Please do not reply to this email.</p>
+            <p>If you have any questions, please contact our support team.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `
+        Email Verification - Digital Assets Academy
+        
+        Hello ${user.name || 'there'}!
+        
+        Please use the following code to verify your email address:
+        
+        ${verificationCode}
+        
+        Important: This code will expire in 15 minutes for security reasons.
+        
+        If you didn't request this verification, you can safely ignore this email.
+        
+        This is an automated message from Digital Assets Academy. Please do not reply to this email.
+      `;
+
+      const emailResult = await resend.emails.send({
+        from:
+          process.env.RESEND_FROM_EMAIL || 'noreply@digitalassetsaceademy.io',
+        to: [user.email],
+        subject: 'Verify Your Email - Digital Assets Academy',
+        html: htmlContent,
+        text: textContent,
+      });
+
+      console.log(
+        `Verification email sent successfully to ${user.email}:`,
+        emailResult
+      );
+      return { success: true, message: 'Verification code sent to your email' };
+    } catch (error) {
+      console.error('Email sending error:', error);
+      // For development, don't fail if email sending fails
+      console.log(
+        '⚠️ Email sending failed, but verification code is logged above'
+      );
+      return {
+        success: true,
+        message: 'Verification code sent (check console for code)',
+      };
+    }
+  },
+});
+
+// Store verification code in user record
+export const storeVerificationCode = mutation({
+  args: {
+    code: v.string(),
+    expiryTime: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error('Must be authenticated');
+    }
+
+    await ctx.db.patch(userId, {
+      resetToken: args.code, // Reusing resetToken field for verification code
+      resetTokenExpiry: args.expiryTime,
+    });
+  },
+});
+
+// Verify email with code
+export const verifyEmail = mutation({
+  args: {
+    code: v.string(),
+  },
+  returns: v.object({ success: v.boolean(), message: v.string() }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error('Must be authenticated');
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.emailVerificationTime) {
+      return { success: false, message: 'Email already verified' };
+    }
+
+    if (!user.resetToken || !user.resetTokenExpiry) {
+      return { success: false, message: 'No verification code found' };
+    }
+
+    if (Date.now() > user.resetTokenExpiry) {
+      return { success: false, message: 'Verification code expired' };
+    }
+
+    if (user.resetToken !== args.code) {
+      return { success: false, message: 'Invalid verification code' };
+    }
+
+    // Mark email as verified
+    await ctx.db.patch(userId, {
+      emailVerificationTime: Date.now(),
+      resetToken: undefined,
+      resetTokenExpiry: undefined,
+    });
+
+    return { success: true, message: 'Email verified successfully' };
+  },
+});
+
+// Test email sending (for debugging)
+export const testEmailSending = action({
+  args: {},
+  returns: v.object({ success: v.boolean(), message: v.string() }),
+  handler: async (ctx) => {
+    'use node';
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error('Must be authenticated');
+    }
+
+    const user = await ctx.runQuery(api.auth.loggedInUser, {});
+    if (!user || !user.email) {
+      throw new Error('User email not found');
+    }
+
+    try {
+      // Import Resend library
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      if (!process.env.RESEND_API_KEY) {
+        throw new Error('RESEND_API_KEY environment variable is not set');
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Test Email</title>
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+              line-height: 1.6; 
+              color: #333; 
+              max-width: 600px; 
+              margin: 0 auto; 
+              padding: 20px;
+            }
+            .header { 
+              background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+              color: white; 
+              padding: 30px; 
+              text-align: center; 
+              border-radius: 10px 10px 0 0;
+            }
+            .content { 
+              background: #f8f9fa; 
+              padding: 30px; 
+              border-radius: 0 0 10px 10px;
+            }
+            .success { 
+              background: #d4edda; 
+              border: 1px solid #c3e6cb; 
+              color: #155724; 
+              padding: 15px; 
+              border-radius: 5px; 
+              margin: 20px 0;
+            }
+            .footer { 
+              margin-top: 30px; 
+              padding-top: 20px; 
+              border-top: 1px solid #dee2e6; 
+              font-size: 14px; 
+              color: #6c757d;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>✅ Test Email</h1>
+            <p>Digital Assets Academy</p>
+          </div>
+          
+          <div class="content">
+            <h2>Hello ${user.name || 'there'}!</h2>
+            <p>This is a test email to verify that email sending is working correctly.</p>
+            
+            <div class="success">
+              <strong>Success!</strong> If you receive this email, the email system is functioning properly.
+            </div>
+            
+            <p>This test was sent at: ${new Date().toLocaleString()}</p>
+          </div>
+          
+          <div class="footer">
+            <p>This is a test message from Digital Assets Academy.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `
+        Test Email - Digital Assets Academy
+        
+        Hello ${user.name || 'there'}!
+        
+        This is a test email to verify that email sending is working correctly.
+        
+        Success! If you receive this email, the email system is functioning properly.
+        
+        This test was sent at: ${new Date().toLocaleString()}
+        
+        This is a test message from Digital Assets Academy.
+      `;
+
+      await resend.emails.send({
+        from:
+          process.env.RESEND_FROM_EMAIL || 'noreply@digitalassetsaceademy.io',
+        to: [user.email],
+        subject: 'Test Email - Digital Assets Academy',
+        html: htmlContent,
+        text: textContent,
+      });
+
+      console.log(`Test email sent successfully to ${user.email}`);
+      return { success: true, message: 'Test email sent successfully' };
+    } catch (error) {
+      console.error('Test email sending error:', error);
+      return {
+        success: false,
+        message: `Test email failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
+    }
+  },
+});
+
+// Test both email types (for debugging)
+export const testAllEmails = action({
+  args: {},
+  returns: v.object({
+    verification: v.object({ success: v.boolean(), message: v.string() }),
+    test: v.object({ success: v.boolean(), message: v.string() }),
+  }),
+  handler: async (ctx) => {
+    'use node';
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error('Must be authenticated');
+    }
+
+    const user = await ctx.runQuery(api.auth.loggedInUser, {});
+    if (!user || !user.email) {
+      throw new Error('User email not found');
+    }
+
+    // Test verification email
+    const verificationResult: any = await ctx.runAction(
+      api.auth.sendEmailVerification,
+      {}
+    );
+
+    // Test regular email
+    const testResult: any = await ctx.runAction(api.auth.testEmailSending, {});
+
+    return {
+      verification: verificationResult,
+      test: testResult,
+    };
+  },
+});

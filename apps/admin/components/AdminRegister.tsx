@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export function AdminRegister({
@@ -14,6 +15,7 @@ export function AdminRegister({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const { signIn } = useAuthActions();
 
@@ -23,7 +25,8 @@ export function AdminRegister({
 
     try {
       await signIn('password', { email, password, name, flow: 'signUp' });
-      toast.success('Registration successful! Please sign in.');
+      toast.success('Registration successful! Please verify your email.');
+      router.push('/verify-email');
     } catch (error) {
       toast.error('Registration failed. Please try again.');
     } finally {

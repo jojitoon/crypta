@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [showRegister, setShowRegister] = useState(false);
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.auth.loggedInUser);
+  const isEmailVerified = useQuery(api.auth.isEmailVerified);
   const { signOut } = useAuthActions();
 
   const handleSignOut = async () => {
@@ -25,7 +26,7 @@ export default function AdminPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isEmailVerified === undefined) {
     return <LoadingSpinner />;
   }
 
@@ -39,6 +40,22 @@ export default function AdminPage() {
         <AdminLogin setShowRegister={setShowRegister} />
       </div>
     );
+  }
+
+  // Check email verification
+  if (isAuthenticated && isEmailVerified === false) {
+    // Check if we're on the verify-email page
+    if (
+      typeof window !== 'undefined' &&
+      window.location.pathname === '/verify-email'
+    ) {
+      return <div>Email verification page will be rendered here</div>;
+    }
+    // Redirect to email verification
+    if (typeof window !== 'undefined') {
+      window.location.href = '/verify-email';
+      return <LoadingSpinner />;
+    }
   }
 
   if (!user?.isAdmin) {

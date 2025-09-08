@@ -207,17 +207,36 @@ function Header() {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
+  const isEmailVerified = useQuery(api.auth.isEmailVerified);
 
   if (!isAuthenticated && !isLoading) {
     return redirect('/login');
   }
 
-  if (isLoading) {
+  if (isLoading || isEmailVerified === undefined) {
     return (
       <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50'>
         <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
       </div>
     );
+  }
+
+  // Check if email verification is required
+  if (isAuthenticated && isEmailVerified === false) {
+    // Allow access to verify-email page
+    if (
+      typeof window !== 'undefined' &&
+      window.location.pathname === '/verify-email'
+    ) {
+      return (
+        <>
+          <Header />
+          <main className='flex-1'>{children}</main>
+        </>
+      );
+    }
+    // Redirect to email verification for all other pages
+    return redirect('/verify-email');
   }
 
   return (
