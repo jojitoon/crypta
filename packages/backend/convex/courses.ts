@@ -356,6 +356,8 @@ export const createCourse = mutation({
     estimatedDuration: v.number(),
     totalLessons: v.number(),
     isPreview: v.boolean(),
+    price: v.optional(v.number()),
+    isFree: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -391,6 +393,8 @@ export const updateCourse = mutation({
     totalLessons: v.optional(v.number()),
     isPreview: v.optional(v.boolean()),
     isPublished: v.optional(v.boolean()),
+    price: v.optional(v.number()),
+    isFree: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

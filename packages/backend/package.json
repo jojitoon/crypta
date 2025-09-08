@@ -15,7 +15,8 @@
     "@react-email/render": "^1.2.1",
     "convex": "^1.25.4",
     "dotenv": "^17.2.1",
-    "resend": "^6.0.2"
+    "resend": "^6.0.2",
+    "stripe": "^18.5.0"
   },
   "exports": {
     "./convex": "./convex/_generated/api.js",

@@ -18,6 +18,10 @@ const applicationTables = {
     isPublished: v.boolean(),
     isPreview: v.optional(v.boolean()), // Free preview course
     createdBy: v.id('users'),
+    // Pricing fields
+    price: v.optional(v.number()), // Price in cents (e.g., 2999 = $29.99)
+    stripePriceId: v.optional(v.string()), // Stripe price ID
+    isFree: v.optional(v.boolean()), // Free course
   })
     .index('by_level', ['level'])
     .index('by_category', ['category'])
@@ -390,6 +394,27 @@ const applicationTables = {
   })
     .index('by_proposal', ['proposalId'])
     .index('by_user', ['userId']),
+
+  // Payment and course purchases
+  coursePurchases: defineTable({
+    userId: v.id('users'),
+    courseId: v.id('courses'),
+    stripeSessionId: v.optional(v.string()),
+    stripePaymentIntentId: v.optional(v.string()),
+    amount: v.number(), // Amount paid in cents
+    currency: v.string(), // e.g., 'usd'
+    status: v.union(
+      v.literal('pending'),
+      v.literal('completed'),
+      v.literal('failed'),
+      v.literal('cancelled')
+    ),
+    purchasedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_course', ['courseId'])
+    .index('by_status', ['status'])
+    .index('by_stripe_session', ['stripeSessionId']),
 };
 
 export default defineSchema({

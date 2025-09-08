@@ -1,16 +1,46 @@
 'use client';
-import { useQuery } from 'convex/react';
+import { useQuery, useAction } from 'convex/react';
 import { useConvexAuth } from 'convex/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@repo/backend/convex';
 import { Id } from '@repo/backend/dataModel';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 export function CourseView() {
   const { courseId } = useParams<{ courseId: Id<'courses'> }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useConvexAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
   const course = useQuery(api.courses.getCourse, { courseId: courseId });
   const loggedInUser = useQuery(api.auth.loggedInUser);
+  const hasAccess = useQuery(api.stripe.hasAccessToCourse, {
+    courseId: courseId,
+  });
+  const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
+
+  // Handle payment status from URL parameters
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+
+    if (paymentStatus === 'success' && sessionId) {
+      toast.success('Payment successful! You now have access to this course.');
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('payment');
+      url.searchParams.delete('session_id');
+      window.history.replaceState({}, '', url.toString());
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Payment was cancelled. You can try again anytime.');
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('payment');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams]);
 
   if (!courseId) {
     return <div>Course ID not found</div>;
@@ -48,6 +78,26 @@ export function CourseView() {
     return <div>Course ID not found</div>;
   }
 
+  const handlePurchase = async () => {
+    setIsLoading(true);
+    try {
+      const result = await createCheckoutSession({ courseId: courseId });
+      if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if course is free or user has access
+  const isFree =
+    course.isFree || course.isPreview || !course.price || course.price === 0;
+  const canAccess = isFree || hasAccess;
+
   const nextLesson = course.lessons.find((lesson) => !lesson.completed);
 
   return (
@@ -66,20 +116,31 @@ export function CourseView() {
 
         <div className='bg-white rounded-xl shadow-sm border border-gray-100 p-8'>
           <div className='flex justify-between items-start mb-4'>
-            <span
-              className={`text-sm font-medium px-3 py-1 rounded-full ${
-                course.level === 'beginner'
-                  ? 'bg-green-100 text-green-800'
-                  : course.level === 'intermediate'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {course.level}
-            </span>
-            <span className='text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full'>
-              {course.category}
-            </span>
+            <div className='flex gap-2'>
+              <span
+                className={`text-sm font-medium px-3 py-1 rounded-full ${
+                  course.level === 'beginner'
+                    ? 'bg-green-100 text-green-800'
+                    : course.level === 'intermediate'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {course.level}
+              </span>
+              <span className='text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full'>
+                {course.category}
+              </span>
+              {isFree ? (
+                <span className='text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full'>
+                  FREE
+                </span>
+              ) : (
+                <span className='text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full'>
+                  PREMIUM
+                </span>
+              )}
+            </div>
           </div>
 
           <h1 className='text-3xl font-bold text-gray-900 mb-4'>
@@ -102,6 +163,14 @@ export function CourseView() {
                 {course.completedLessons}/{course.totalLessons} completed
               </span>
             </div>
+            {!isFree && (
+              <div className='text-right'>
+                <div className='text-2xl font-bold text-gray-900'>
+                  ${(course.price! / 100).toFixed(2)}
+                </div>
+                <div className='text-sm text-gray-500'>One-time payment</div>
+              </div>
+            )}
           </div>
 
           {/* Progress Bar */}
@@ -123,7 +192,30 @@ export function CourseView() {
           </div>
 
           {/* Action Button */}
-          {nextLesson ? (
+          {!canAccess ? (
+            <div className='space-y-4'>
+              <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4'>
+                <div className='flex items-center'>
+                  <span className='text-yellow-600 mr-2'>🔒</span>
+                  <span className='text-yellow-800 font-medium'>
+                    This is a premium course
+                  </span>
+                </div>
+                <p className='text-yellow-700 text-sm mt-1'>
+                  Purchase this course to access all lessons and content.
+                </p>
+              </div>
+              <button
+                onClick={handlePurchase}
+                disabled={isLoading}
+                className='bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed'
+              >
+                {isLoading
+                  ? 'Processing...'
+                  : `Purchase for $${(course.price! / 100).toFixed(2)}`}
+              </button>
+            </div>
+          ) : nextLesson ? (
             <button
               onClick={() => {
                 void router.push(
@@ -170,13 +262,23 @@ export function CourseView() {
           {course.lessons.map((lesson, index) => (
             <div
               key={lesson._id}
-              className={`border rounded-lg p-4 transition-all cursor-pointer ${
+              className={`border rounded-lg p-4 transition-all ${
+                canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+              } ${
                 lesson.completed
                   ? 'border-green-200 bg-green-50'
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                  : canAccess
+                    ? 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    : 'border-gray-200 bg-gray-50'
               }`}
               onClick={() => {
-                void router.push(`/courses/${courseId}/lessons/${lesson._id}`);
+                if (canAccess) {
+                  void router.push(
+                    `/courses/${courseId}/lessons/${lesson._id}`
+                  );
+                } else {
+                  toast.error('Please purchase this course to access lessons');
+                }
               }}
             >
               <div className='flex items-center justify-between'>
@@ -185,10 +287,12 @@ export function CourseView() {
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                       lesson.completed
                         ? 'bg-green-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
+                        : canAccess
+                          ? 'bg-gray-200 text-gray-600'
+                          : 'bg-gray-300 text-gray-500'
                     }`}
                   >
-                    {lesson.completed ? '✓' : index + 1}
+                    {lesson.completed ? '✓' : canAccess ? index + 1 : '🔒'}
                   </div>
 
                   <div>

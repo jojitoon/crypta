@@ -10,6 +10,88 @@ import Image from 'next/image';
 function Header() {
   const userStats = useQuery(api.achievements.getUserStats);
   const [open, setOpen] = useState(false);
+
+  // List of menu items for the dropdown
+  const menuItems = [
+    {
+      href: '/dashboard',
+      icon: '🏠',
+      title: 'Dashboard',
+      desc: 'Your overview and progress',
+      comingSoon: false,
+    },
+    {
+      href: '/courses',
+      icon: '📚',
+      title: 'Courses',
+      desc: 'Browse all courses',
+      comingSoon: false,
+    },
+    {
+      href: '/create-course',
+      icon: '➕',
+      title: 'Create Course',
+      desc: 'Publish your content',
+      comingSoon: false,
+    },
+    {
+      href: '/community',
+      icon: '🌐',
+      title: 'Community',
+      desc: 'Forum discussions',
+      comingSoon: false,
+    },
+    {
+      href: '/community/ideas',
+      icon: '💡',
+      title: 'Course Ideas',
+      desc: 'Suggest new courses',
+      comingSoon: false,
+    },
+    {
+      href: '/ai',
+      icon: '🤖',
+      title: 'AI Tutor',
+      desc: 'Personalized learning',
+      comingSoon: true,
+    },
+    {
+      href: '/credentials',
+      icon: '🎓',
+      title: 'Credentials',
+      desc: 'On-chain certificates',
+      comingSoon: true,
+    },
+    {
+      href: '/wallet',
+      icon: '🦊',
+      title: 'Wallet',
+      desc: 'Connect and staking',
+      comingSoon: true,
+    },
+    {
+      href: '/consulting',
+      icon: '🗓️',
+      title: 'Consulting',
+      desc: '1:1 coaching',
+      comingSoon: true,
+    },
+    {
+      href: '/multimedia/webinars',
+      icon: '🎥',
+      title: 'Webinars',
+      desc: 'Live sessions',
+      comingSoon: true,
+    },
+    {
+      href: '/events',
+      icon: '🎟️',
+      title: 'Events',
+      desc: 'Virtual & physical',
+      comingSoon: true,
+    },
+  ];
+
   return (
     <header className='sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -47,160 +129,34 @@ function Header() {
               {open && (
                 <div className='absolute mt-2 w-72 rounded-lg border border-gray-200 bg-white shadow-xl overflow-hidden'>
                   <div className='grid grid-cols-1 divide-y divide-gray-100'>
-                    <Link
-                      href='/dashboard'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🏠</span>
-                      <div>
-                        <div className='font-medium'>Dashboard</div>
-                        <div className='text-xs text-gray-500'>
-                          Your overview and progress
+                    {menuItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 ${
+                          item.comingSoon
+                            ? 'pointer-events-none opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                        tabIndex={item.comingSoon ? -1 : undefined}
+                        aria-disabled={item.comingSoon ? 'true' : undefined}
+                      >
+                        <span>{item.icon}</span>
+                        <div>
+                          <div className='font-medium flex items-center gap-2'>
+                            {item.title}
+                            {item.comingSoon && (
+                              <span className='ml-1 px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-semibold'>
+                                Coming soon
+                              </span>
+                            )}
+                          </div>
+                          <div className='text-xs text-gray-500'>
+                            {item.desc}
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/courses'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>📚</span>
-                      <div>
-                        <div className='font-medium'>Courses</div>
-                        <div className='text-xs text-gray-500'>
-                          Browse all courses
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/create-course'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>➕</span>
-                      <div>
-                        <div className='font-medium'>Create Course</div>
-                        <div className='text-xs text-gray-500'>
-                          Publish your content
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/community'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🌐</span>
-                      <div>
-                        <div className='font-medium'>Community</div>
-                        <div className='text-xs text-gray-500'>
-                          Forum discussions
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/community/ideas'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>💡</span>
-                      <div>
-                        <div className='font-medium'>Course Ideas</div>
-                        <div className='text-xs text-gray-500'>
-                          Suggest new courses
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/ai'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🤖</span>
-                      <div>
-                        <div className='font-medium'>AI Tutor</div>
-                        <div className='text-xs text-gray-500'>
-                          Personalized learning
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/credentials'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🎓</span>
-                      <div>
-                        <div className='font-medium'>Credentials</div>
-                        <div className='text-xs text-gray-500'>
-                          On-chain certificates
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/wallet'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🦊</span>
-                      <div>
-                        <div className='font-medium'>Wallet</div>
-                        <div className='text-xs text-gray-500'>
-                          Connect and staking
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/consulting'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🗓️</span>
-                      <div>
-                        <div className='font-medium'>Consulting</div>
-                        <div className='text-xs text-gray-500'>
-                          1:1 coaching
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/multimedia/webinars'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🎥</span>
-                      <div>
-                        <div className='font-medium'>Webinars</div>
-                        <div className='text-xs text-gray-500'>
-                          Live sessions
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/multimedia/shorts'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>📱</span>
-                      <div>
-                        <div className='font-medium'>Shorts</div>
-                        <div className='text-xs text-gray-500'>Quick tips</div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/events'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🎟️</span>
-                      <div>
-                        <div className='font-medium'>Events</div>
-                        <div className='text-xs text-gray-500'>
-                          Virtual & physical
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href='/governance'
-                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700'
-                    >
-                      <span>🗳️</span>
-                      <div>
-                        <div className='font-medium'>Governance</div>
-                        <div className='text-xs text-gray-500'>
-                          Vote and propose
-                        </div>
-                      </div>
-                    </Link>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               )}

@@ -1,155 +1,210 @@
 import { mutation } from './_generated/server';
+import { v } from 'convex/values';
 import { getAuthUserId } from '@convex-dev/auth/server';
+import { api } from './_generated/api';
 
 export const seedCourses = mutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error('Must be authenticated');
+    // const userId = await getAuthUserId(ctx);
+    // if (!userId) {
+    //   throw new Error('Must be authenticated');
+    // }
+
+    const jojitoon = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', 'jojitoon@gmail.com'))
+      .first();
+
+    if (!jojitoon) {
+      throw new Error('Jojitoon user not found');
     }
+
+    const userId = jojitoon._id;
 
     // Check if courses already exist
-    const existingCourses = await ctx.db.query('courses').collect();
-    if (existingCourses.length > 0) {
-      return { success: true, message: 'Courses already exist!' };
-    }
+    // const existingCourses = await ctx.db.query('courses').collect();
+    // if (existingCourses.length > 0) {
+    //   return { success: true, message: 'Courses already exist!' };
+    // }
 
-    // Create beginner courses
-    const cryptoBasicsCourse = await ctx.db.insert('courses', {
-      title: 'Cryptocurrency Fundamentals',
+    // Create new, different courses
+    const nftCourse = await ctx.db.insert('courses', {
+      title: 'NFTs: Beyond the Hype',
       description:
-        'Learn the basics of cryptocurrency, blockchain technology, and digital assets. Perfect for complete beginners.',
-      level: 'beginner',
-      category: 'Fundamentals',
-      estimatedDuration: 120,
-      totalLessons: 6,
-      isPublished: true,
-      isPreview: false,
-      createdBy: userId,
-    });
-
-    const walletSecurityCourse = await ctx.db.insert('courses', {
-      title: 'Wallet Security & Best Practices',
-      description:
-        'Master the art of keeping your crypto safe with proper wallet management and security practices.',
-      level: 'beginner',
-      category: 'Security',
-      estimatedDuration: 90,
-      totalLessons: 5,
-      isPublished: true,
-      isPreview: false,
-      createdBy: userId,
-    });
-
-    const defiBasicsCourse = await ctx.db.insert('courses', {
-      title: 'Introduction to DeFi',
-      description:
-        'Discover decentralized finance protocols, yield farming, and liquidity provision strategies.',
+        'Explore the world of Non-Fungible Tokens (NFTs), their use cases, and how to create, buy, and sell them.',
       level: 'intermediate',
-      category: 'DeFi',
-      estimatedDuration: 180,
-      totalLessons: 8,
+      category: 'NFTs',
+      estimatedDuration: 100,
+      totalLessons: 4,
       isPublished: true,
       isPreview: false,
       createdBy: userId,
+      price: 3999, // $39.99
     });
 
-    // Create lessons for Crypto Basics course
+    const tradingCourse = await ctx.db.insert('courses', {
+      title: 'Crypto Trading Strategies',
+      description:
+        'Learn essential trading strategies, risk management, and technical analysis for the crypto markets.',
+      level: 'advanced',
+      category: 'Trading',
+      estimatedDuration: 150,
+      totalLessons: 7,
+      isPublished: true,
+      isPreview: false,
+      createdBy: userId,
+      price: 5999, // $59.99
+    });
+
+    const web3Course = await ctx.db.insert('courses', {
+      title: 'Building on Web3',
+      description:
+        'A developer-focused course on building decentralized applications (dApps) using Web3 technologies.',
+      level: 'advanced',
+      category: 'Development',
+      estimatedDuration: 200,
+      totalLessons: 9,
+      isPublished: true,
+      isPreview: false,
+      createdBy: userId,
+      price: 7999, // $79.99
+    });
+
+    // Lessons for NFT Course
     await ctx.db.insert('lessons', {
-      courseId: cryptoBasicsCourse,
-      title: 'What is Cryptocurrency?',
+      courseId: nftCourse,
+      title: 'What are NFTs?',
       content:
-        'Cryptocurrency is a digital or virtual currency that uses cryptography for security. Unlike traditional currencies issued by governments, cryptocurrencies operate on decentralized networks based on blockchain technology.\n\nKey characteristics:\n• Digital-only existence\n• Decentralized control\n• Cryptographic security\n• Peer-to-peer transactions\n• Limited supply (in most cases)',
-      duration: 15,
+        'NFTs, or Non-Fungible Tokens, are unique digital assets stored on a blockchain. Unlike cryptocurrencies such as Bitcoin or Ethereum, NFTs are not interchangeable and each has its own distinct value.',
+      duration: 20,
       order: 1,
       type: 'text',
       isPublished: true,
     });
 
     await ctx.db.insert('lessons', {
-      courseId: cryptoBasicsCourse,
-      title: 'Understanding Blockchain',
+      courseId: nftCourse,
+      title: 'NFT Use Cases',
       content:
-        'Blockchain is the underlying technology that powers cryptocurrencies. Think of it as a digital ledger that records transactions across multiple computers in a way that makes it nearly impossible to change or hack.\n\nKey concepts:\n• Blocks contain transaction data\n• Chains link blocks chronologically\n• Distributed across network nodes\n• Immutable once confirmed\n• Transparent and verifiable',
-      duration: 20,
+        'NFTs are used in digital art, gaming, collectibles, music, and even real estate. They enable true ownership and provenance of digital items.',
+      duration: 25,
       order: 2,
       type: 'text',
       isPublished: true,
     });
 
-    const quizLesson = await ctx.db.insert('lessons', {
-      courseId: cryptoBasicsCourse,
-      title: 'Crypto Basics Quiz',
-      content: 'Test your understanding of cryptocurrency fundamentals.',
+    const nftQuizLesson = await ctx.db.insert('lessons', {
+      courseId: nftCourse,
+      title: 'NFTs Quiz',
+      content: 'Test your knowledge about NFTs and their applications.',
       duration: 10,
       order: 3,
       type: 'quiz',
       isPublished: true,
     });
 
-    // Create quiz for the quiz lesson
     await ctx.db.insert('quizzes', {
-      lessonId: quizLesson,
+      lessonId: nftQuizLesson,
       questions: [
         {
-          question:
-            'What makes cryptocurrency different from traditional currency?',
+          question: 'What does NFT stand for?',
           options: [
-            "It's only available online",
-            'It uses cryptography and operates on decentralized networks',
-            "It's more expensive",
-            'It can only be used for illegal activities',
+            'Non-Financial Token',
+            'Non-Fungible Token',
+            'New Financial Technology',
+            'Network Funded Token',
           ],
           correctAnswer: 1,
-          explanation:
-            'Cryptocurrency uses cryptography for security and operates on decentralized networks, unlike traditional currencies controlled by governments.',
+          explanation: 'NFT stands for Non-Fungible Token.',
         },
         {
-          question: 'What is a blockchain?',
+          question: 'Which of the following is a common use case for NFTs?',
           options: [
-            'A type of cryptocurrency',
-            'A digital wallet',
-            'A distributed ledger technology',
-            'A mining device',
+            'Digital Art',
+            'Bank Transfers',
+            'Physical Cash',
+            'Traditional Stocks',
           ],
-          correctAnswer: 2,
-          explanation:
-            'Blockchain is a distributed ledger technology that records transactions across multiple computers in a secure and transparent way.',
+          correctAnswer: 0,
+          explanation: 'Digital art is a popular use case for NFTs.',
         },
         {
-          question:
-            'Which characteristic is NOT typical of most cryptocurrencies?',
+          question: 'What makes an NFT unique?',
           options: [
-            'Limited supply',
-            'Decentralized control',
-            'Government backing',
-            'Cryptographic security',
+            'It is divisible',
+            'It is interchangeable',
+            'It has a unique identifier on the blockchain',
+            'It is a physical asset',
           ],
           correctAnswer: 2,
-          explanation:
-            'Most cryptocurrencies are not backed by governments - they operate independently on decentralized networks.',
+          explanation: 'NFTs have unique identifiers on the blockchain.',
         },
       ],
       passingScore: 70,
     });
 
     await ctx.db.insert('lessons', {
-      courseId: cryptoBasicsCourse,
-      title: 'Popular Cryptocurrencies',
+      courseId: nftCourse,
+      title: 'How to Mint and Trade NFTs',
       content:
-        'While Bitcoin was the first cryptocurrency, thousands of others now exist. Here are some of the most important ones:\n\n**Bitcoin (BTC)**\n• First and most well-known cryptocurrency\n• Digital gold and store of value\n• Limited supply of 21 million coins\n\n**Ethereum (ETH)**\n• Platform for smart contracts and dApps\n• Powers most DeFi protocols\n• Transitioning to proof-of-stake\n\n**Other Notable Coins**\n• Binance Coin (BNB) - Exchange utility token\n• Cardano (ADA) - Research-driven blockchain\n• Solana (SOL) - High-speed blockchain platform',
+        'Learn how to create (mint) your own NFTs and trade them on popular marketplaces like OpenSea and Rarible.',
+      duration: 45,
+      order: 4,
+      type: 'text',
+      isPublished: true,
+    });
+
+    // Lessons for Trading Course
+    await ctx.db.insert('lessons', {
+      courseId: tradingCourse,
+      title: 'Introduction to Crypto Trading',
+      content:
+        'Crypto trading involves buying and selling digital assets for profit. This lesson covers the basics, including exchanges, order types, and trading pairs.',
+      duration: 20,
+      order: 1,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: tradingCourse,
+      title: 'Technical Analysis Basics',
+      content:
+        'Technical analysis uses historical price data and chart patterns to predict future market movements. Learn about candlesticks, support/resistance, and indicators.',
+      duration: 30,
+      order: 2,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: tradingCourse,
+      title: 'Risk Management',
+      content:
+        'Effective risk management is crucial for long-term trading success. Topics include position sizing, stop-losses, and portfolio diversification.',
       duration: 25,
+      order: 3,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: tradingCourse,
+      title: 'Trading Psychology',
+      content:
+        'Understand the psychological aspects of trading, including discipline, emotional control, and avoiding common pitfalls.',
+      duration: 20,
       order: 4,
       type: 'text',
       isPublished: true,
     });
 
     await ctx.db.insert('lessons', {
-      courseId: cryptoBasicsCourse,
-      title: 'How to Buy Your First Crypto',
+      courseId: tradingCourse,
+      title: 'Advanced Trading Strategies',
       content:
-        "Ready to buy your first cryptocurrency? Here's a step-by-step guide:\n\n**Step 1: Choose an Exchange**\n• Coinbase (beginner-friendly)\n• Binance (advanced features)\n• Kraken (security-focused)\n\n**Step 2: Complete Verification**\n• Provide ID documents\n• Verify your identity\n• Link bank account or card\n\n**Step 3: Make Your Purchase**\n• Start small with Bitcoin or Ethereum\n• Use dollar-cost averaging\n• Never invest more than you can afford to lose\n\n**Step 4: Secure Your Investment**\n• Consider a hardware wallet\n• Enable two-factor authentication\n• Keep your private keys safe",
+        'Explore advanced strategies such as swing trading, scalping, and arbitrage in the crypto markets.',
       duration: 30,
       order: 5,
       type: 'text',
@@ -157,22 +212,33 @@ export const seedCourses = mutation({
     });
 
     await ctx.db.insert('lessons', {
-      courseId: cryptoBasicsCourse,
-      title: 'Final Assessment',
+      courseId: tradingCourse,
+      title: 'Backtesting and Tools',
       content:
-        'Complete this comprehensive quiz to test your cryptocurrency knowledge.',
+        'Learn how to backtest your strategies and use trading tools and bots to automate your trades.',
       duration: 15,
       order: 6,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: tradingCourse,
+      title: 'Final Trading Assessment',
+      content:
+        'Take this quiz to assess your understanding of crypto trading concepts and strategies.',
+      duration: 10,
+      order: 7,
       type: 'quiz',
       isPublished: true,
     });
 
-    // Create lessons for Wallet Security course
+    // Lessons for Web3 Course
     await ctx.db.insert('lessons', {
-      courseId: walletSecurityCourse,
-      title: 'Types of Crypto Wallets',
+      courseId: web3Course,
+      title: 'Introduction to Web3',
       content:
-        "Understanding different wallet types is crucial for crypto security:\n\n**Hot Wallets (Connected to Internet)**\n• Mobile apps (Trust Wallet, MetaMask)\n• Desktop software\n• Web wallets\n• Convenient but less secure\n\n**Cold Wallets (Offline Storage)**\n• Hardware wallets (Ledger, Trezor)\n• Paper wallets\n• Air-gapped computers\n• More secure but less convenient\n\n**Custodial vs Non-Custodial**\n• Custodial: Exchange controls keys\n• Non-custodial: You control keys\n• Remember: 'Not your keys, not your crypto'",
+        'Web3 represents the next evolution of the internet, enabling decentralized applications and user-owned data.',
       duration: 20,
       order: 1,
       type: 'text',
@@ -180,19 +246,97 @@ export const seedCourses = mutation({
     });
 
     await ctx.db.insert('lessons', {
-      courseId: walletSecurityCourse,
-      title: 'Private Keys and Seed Phrases',
+      courseId: web3Course,
+      title: 'Smart Contracts Deep Dive',
       content:
-        "Your private keys and seed phrases are the most important aspects of crypto security:\n\n**Private Keys**\n• Mathematical proof of ownership\n• Never share with anyone\n• Required to sign transactions\n• If lost, funds are gone forever\n\n**Seed Phrases (Recovery Phrases)**\n• 12-24 word backup of your wallet\n• Can restore access to all your crypto\n• Write down on paper, never digital\n• Store in multiple secure locations\n\n**Best Practices**\n• Never take screenshots\n• Don't store in cloud services\n• Use metal backup plates for durability\n• Test recovery process with small amounts",
-      duration: 25,
+        'Understand how smart contracts work, their security considerations, and how to write them in Solidity.',
+      duration: 30,
       order: 2,
       type: 'text',
       isPublished: true,
     });
 
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'Building Your First dApp',
+      content:
+        'A step-by-step guide to building and deploying your first decentralized application on Ethereum.',
+      duration: 40,
+      order: 3,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'Interacting with Web3.js',
+      content:
+        'Learn how to use the Web3.js library to interact with smart contracts and the Ethereum blockchain from your JavaScript applications.',
+      duration: 25,
+      order: 4,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'Decentralized Storage',
+      content:
+        'Explore decentralized storage solutions like IPFS and Filecoin, and how to integrate them into your dApps.',
+      duration: 20,
+      order: 5,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'Web3 Security Best Practices',
+      content:
+        'Security is paramount in Web3 development. Learn about common vulnerabilities and how to protect your dApps.',
+      duration: 25,
+      order: 6,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'DAOs and Governance',
+      content:
+        'Understand Decentralized Autonomous Organizations (DAOs) and how on-chain governance works.',
+      duration: 20,
+      order: 7,
+      type: 'text',
+      isPublished: true,
+    });
+
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'Cross-Chain Interoperability',
+      content:
+        'Learn about protocols and tools that enable interoperability between different blockchains.',
+      duration: 20,
+      order: 8,
+      type: 'text',
+      isPublished: true,
+    });
+
+    // The lesson type "project" is not allowed by the schema, so we use "text" instead.
+    await ctx.db.insert('lessons', {
+      courseId: web3Course,
+      title: 'Web3 Final Project',
+      content:
+        'Apply your knowledge by building a complete dApp as your final project.',
+      duration: 20,
+      order: 9,
+      type: 'text', // Changed from "project" to "text"
+      isPublished: true,
+    });
+
     return {
       success: true,
-      message: 'Sample courses and preview courses created successfully!',
+      message: 'New sample courses created successfully!',
     };
   },
 });
@@ -217,193 +361,123 @@ export const seedPreviewCourses = mutation({
     });
 
     // Create preview courses with one lesson each
-    const bitcoinPreview = await ctx.db.insert('courses', {
-      title: 'What is Bitcoin? (Free Preview)',
+    const nftPreview = await ctx.db.insert('courses', {
+      title: 'NFTs Explained (Free Preview)',
       description:
-        "A comprehensive introduction to Bitcoin, the world's first cryptocurrency. Learn about its history, technology, and why it matters.",
+        'A quick introduction to NFTs, their significance, and how they are changing digital ownership.',
       level: 'beginner',
-      category: 'Fundamentals',
-      estimatedDuration: 15,
+      category: 'NFTs',
+      estimatedDuration: 10,
       totalLessons: 1,
       isPublished: true,
       isPreview: true,
       createdBy: sampleTeacherId,
     });
 
-    // Create the lesson for Bitcoin course
+    // Create the lesson for NFT preview course
     await ctx.db.insert('lessons', {
-      courseId: bitcoinPreview,
-      title: 'Understanding Bitcoin',
-      content: `# What is Bitcoin?
+      courseId: nftPreview,
+      title: 'NFT Fundamentals',
+      content: `# NFTs Explained
 
-Bitcoin is a decentralized digital currency that was created in 2009 by an anonymous person or group using the pseudonym Satoshi Nakamoto. It was the first cryptocurrency to solve the double-spending problem without requiring a trusted authority or central server.
+NFTs, or Non-Fungible Tokens, are unique digital assets that represent ownership of a specific item or piece of content on the blockchain. Unlike cryptocurrencies such as Bitcoin, each NFT is one-of-a-kind.
 
-## Key Characteristics of Bitcoin
+## Why are NFTs Important?
 
-### 1. **Decentralization**
-- No central authority controls Bitcoin
-- Network is maintained by a distributed network of computers (nodes)
-- No single point of failure
+- **Digital Ownership**: NFTs prove ownership of digital art, music, collectibles, and more.
+- **Provenance**: The blockchain records the history of each NFT, ensuring authenticity.
+- **Programmability**: NFTs can have built-in royalties and other features.
 
-### 2. **Limited Supply**
-- Maximum supply: 21 million bitcoins
-- New bitcoins are created through mining
-- Supply is predictable and transparent
+## How to Get Started
 
-### 3. **Security**
-- Uses cryptographic proof instead of trust
-- Transactions are verified by network consensus
-- Immutable transaction history
+1. Set up a crypto wallet (e.g., MetaMask)
+2. Visit an NFT marketplace (e.g., OpenSea)
+3. Buy, sell, or create your own NFTs
 
-### 4. **Transparency**
-- All transactions are publicly recorded on the blockchain
-- Anyone can verify transactions
-- Pseudonymous (not anonymous)
-
-## How Bitcoin Works
-
-Bitcoin operates on a technology called blockchain, which is essentially a distributed ledger that records all transactions across a network of computers. When you send Bitcoin to someone:
-
-1. The transaction is broadcast to the network
-2. Miners verify the transaction using complex mathematical algorithms
-3. Once verified, the transaction is added to a block
-4. The block is added to the blockchain
-5. The transaction is complete and irreversible
-
-## Why Bitcoin Matters
-
-Bitcoin represents a fundamental shift in how we think about money:
-- **Store of Value**: Often called "digital gold"
-- **Medium of Exchange**: Can be used to buy goods and services
-- **Unit of Account**: Can be used to price other assets
-- **Financial Inclusion**: Provides access to financial services for the unbanked
-- **Censorship Resistance**: Cannot be seized or frozen by authorities
-
-## Getting Started with Bitcoin
-
-To start using Bitcoin, you'll need:
-1. A Bitcoin wallet (software or hardware)
-2. A way to acquire Bitcoin (exchange, mining, or accepting as payment)
-3. Understanding of basic security practices
-
-Remember: Never invest more than you can afford to lose, and always do your own research before making any financial decisions.`,
-      duration: 15,
+**Remember:** Always verify the authenticity of NFTs before purchasing.`,
+      duration: 10,
       order: 1,
       type: 'text',
       isPublished: true,
     });
 
-    const ethereumPreview = await ctx.db.insert('courses', {
-      title: 'Ethereum Smart Contracts (Free Preview)',
+    const tradingPreview = await ctx.db.insert('courses', {
+      title: 'Crypto Trading 101 (Free Preview)',
       description:
-        "Discover how Ethereum's smart contracts are revolutionizing finance and creating new possibilities for decentralized applications.",
-      level: 'intermediate',
-      category: 'DeFi',
-      estimatedDuration: 20,
+        'Get a taste of crypto trading with this introductory lesson on exchanges and order types.',
+      level: 'beginner',
+      category: 'Trading',
+      estimatedDuration: 12,
       totalLessons: 1,
       isPublished: true,
       isPreview: true,
       createdBy: sampleTeacherId,
     });
 
-    // Create the lesson for Ethereum course
+    // Create the lesson for Trading preview course
     await ctx.db.insert('lessons', {
-      courseId: ethereumPreview,
-      title: 'Understanding Smart Contracts',
-      content: `# Ethereum Smart Contracts
+      courseId: tradingPreview,
+      title: 'How Crypto Exchanges Work',
+      content: `# Crypto Trading 101
 
-Ethereum is more than just a cryptocurrency - it's a platform for building decentralized applications (dApps) using smart contracts. Smart contracts are self-executing contracts with the terms of the agreement directly written into code.
+Crypto exchanges are platforms where you can buy, sell, and trade cryptocurrencies. There are two main types:
 
-## What are Smart Contracts?
+- **Centralized Exchanges (CEX)**: Operated by companies (e.g., Coinbase, Binance)
+- **Decentralized Exchanges (DEX)**: Peer-to-peer trading without intermediaries (e.g., Uniswap)
 
-Smart contracts are programs that run on the Ethereum blockchain. They automatically execute when predetermined conditions are met, without the need for intermediaries.
+## Order Types
 
-### Key Features:
-- **Automatic Execution**: No human intervention required
-- **Trustless**: No need to trust a third party
-- **Transparent**: Code is visible to everyone
-- **Immutable**: Cannot be changed once deployed
-- **Decentralized**: Runs on the Ethereum network
+- **Market Order**: Buy or sell immediately at the best available price
+- **Limit Order**: Set a specific price at which you want to buy or sell
+- **Stop Order**: Trigger a buy or sell when a certain price is reached
 
-## How Smart Contracts Work
-
-### 1. **Development**
-Smart contracts are written in Solidity (Ethereum's programming language) and compiled into bytecode that runs on the Ethereum Virtual Machine (EVM).
-
-### 2. **Deployment**
-Contracts are deployed to the Ethereum blockchain, creating a unique address where they can be interacted with.
-
-### 3. **Execution**
-When someone sends a transaction to the contract address, the contract executes its code based on the input provided.
-
-## Real-World Applications
-
-### **DeFi (Decentralized Finance)**
-- **Lending Platforms**: Aave, Compound
-- **Decentralized Exchanges**: Uniswap, SushiSwap
-- **Yield Farming**: Automated yield optimization
-
-### **NFTs (Non-Fungible Tokens)**
-- Digital art and collectibles
-- Gaming assets
-- Real estate tokenization
-
-### **DAO (Decentralized Autonomous Organizations)**
-- Community governance
-- Investment funds
-- Protocol management
-
-## Example: Simple Smart Contract
-
-Here's a basic example of what a smart contract looks like:
-
-\`\`\`solidity
-pragma solidity ^0.8.0;
-
-contract SimpleStorage {
-    uint256 private storedData;
-    
-    function set(uint256 x) public {
-        storedData = x;
-    }
-    
-    function get() public view returns (uint256) {
-        return storedData;
-    }
-}
-\`\`\`
-
-## Benefits of Smart Contracts
-
-1. **Efficiency**: Automates processes that would otherwise require manual intervention
-2. **Cost Reduction**: Eliminates intermediaries and associated fees
-3. **Security**: Cryptographic security and transparency
-4. **Accessibility**: Anyone can interact with smart contracts
-5. **Innovation**: Enables new business models and applications
-
-## Challenges and Considerations
-
-- **Code Vulnerabilities**: Smart contracts are immutable, so bugs can be costly
-- **Scalability**: Ethereum's current limitations on transaction throughput
-- **Regulatory Uncertainty**: Evolving legal framework around smart contracts
-- **User Experience**: Complex interfaces can be intimidating for new users
-
-## The Future of Smart Contracts
-
-Smart contracts are just beginning to show their potential. As the technology matures, we can expect:
-- More sophisticated DeFi protocols
-- Integration with traditional finance
-- Improved user interfaces
-- Cross-chain interoperability
-- Enhanced security measures
-
-The possibilities are endless, and smart contracts are fundamentally changing how we think about trust, automation, and value exchange in the digital age.`,
-      duration: 20,
+**Tip:** Always start with small amounts and learn how the platform works before trading large sums.`,
+      duration: 12,
       order: 1,
       type: 'text',
       isPublished: true,
     });
 
     return { success: true, message: 'Preview courses created successfully!' };
+  },
+});
+
+// Function to clear all data and re-seed
+export const clearAndReseed = mutation({
+  args: {},
+  returns: v.object({
+    success: v.boolean(),
+    message: v.string(),
+  }),
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error('Must be authenticated');
+    }
+
+    // Clear all existing data
+    const lessons = await ctx.db.query('lessons').collect();
+    for (const lesson of lessons) {
+      await ctx.db.delete(lesson._id);
+    }
+
+    const courses = await ctx.db.query('courses').collect();
+    for (const course of courses) {
+      await ctx.db.delete(course._id);
+    }
+
+    const purchases = await ctx.db.query('coursePurchases').collect();
+    for (const purchase of purchases) {
+      await ctx.db.delete(purchase._id);
+    }
+
+    // Re-seed the data
+    await ctx.runMutation(api.seedData.seedCourses, {});
+    await ctx.runMutation(api.seedData.seedPreviewCourses, {});
+
+    return {
+      success: true,
+      message: 'All data cleared and re-seeded successfully',
+    };
   },
 });

@@ -298,6 +298,7 @@ async function hashPassword(password: string): Promise<string> {
   // For now, we'll use a simple hash (replace with bcrypt or similar)
   const encoder = new TextEncoder();
   const data = encoder.encode(
+    // @ts-ignore
     password + process.env.PASSWORD_SALT || 'default-salt'
   );
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);

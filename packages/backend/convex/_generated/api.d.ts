@@ -31,6 +31,7 @@ import type * as mux from "../mux.js";
 import type * as muxActions from "../muxActions.js";
 import type * as router from "../router.js";
 import type * as seedData from "../seedData.js";
+import type * as stripe from "../stripe.js";
 import type * as web3 from "../web3.js";
 
 /**
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   muxActions: typeof muxActions;
   router: typeof router;
   seedData: typeof seedData;
+  stripe: typeof stripe;
   web3: typeof web3;
 }>;
 export declare const api: FilterApi<

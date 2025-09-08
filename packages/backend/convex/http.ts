@@ -36,4 +36,40 @@ http.route({
   }),
 });
 
+// Stripe webhook endpoint
+http.route({
+  path: '/stripe/webhook',
+  method: 'POST',
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.text();
+      const signature = request.headers.get('stripe-signature');
+
+      if (!signature) {
+        return new Response('Missing signature', { status: 400 });
+      }
+
+      // Use the dedicated webhook action
+      const result = await ctx.runAction(api.stripe.processWebhookEvent, {
+        body,
+        signature,
+      });
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      console.error('Stripe webhook error:', error);
+      return new Response(
+        JSON.stringify({ error: 'Webhook processing failed' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+  }),
+});
+
 export default http;
